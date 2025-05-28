@@ -35,4 +35,9 @@ return [
         ],
     ],
 
+    'fastapi' => [
+        'url' => env('FASTAPI_CRAWLER_URL'),
+        'key' => env('FASTAPI_CRAWLER_KEY'), // Utilisé pour l'authentification si votre API FastAPI le requiert
+    ],
+
 ];
