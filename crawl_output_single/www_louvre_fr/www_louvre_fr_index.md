@@ -78,7 +78,7 @@ previous navigation elementnext navigation item
 Close searchRechercherValidate the search on louvre.fr (required)
 ## Bienvenue au Louvre
 Le musée est ouvert aujourd’hui
-9h à 21h
+9h à 18h
 Réserver un billetPréparer sa visite
 
 ## Evadez-vous au Louvre
@@ -228,12 +228,12 @@ Découvrir
 
 ## Préparer sa visite
 Le musée est ouvert aujourd’hui
-9h à 21h
+9h à 18h
 Réserver un billetPréparer sa visite
 Réserver un billetPréparer sa visite
 ## Bienvenue au Louvre
 Le musée est ouvert aujourd’hui
-9h à 21h
+9h à 18h
 Réserver un billetPréparer sa visite
 Réserver un billetPréparer sa visite
 Restons en contact

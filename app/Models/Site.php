@@ -14,7 +14,8 @@ class Site extends Model {
         'status_api', 
         'fastapi_job_id', 
         'last_sent_to_api_at', 
-        'last_api_response'
+        'last_api_response',
+        'user_id',
     ];
 
     protected $casts = [
@@ -22,4 +23,9 @@ class Site extends Model {
         'last_sent_to_api_at' => 'datetime'
     ];
     // Plus de relation crawlVersion() ici
+
+    public function user(): BelongsTo
+    {
+        return $this->belongsTo(User::class); // Assurez-vous que User::class pointe vers votre modèle utilisateur
+    }
 }

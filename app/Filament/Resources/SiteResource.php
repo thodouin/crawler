@@ -13,7 +13,8 @@ use Filament\Tables;
 use Filament\Tables\Table;
 use Filament\Notifications\Notification;
 use Illuminate\Database\Eloquent\Collection as EloquentCollection;
-// use Illuminate\Support\Facades\Log; // Optionnel si pas de log direct ici
+use Illuminate\Database\Eloquent\Builder; // IMPORTANT pour le scope
+use Illuminate\Support\Facades\Auth;
 
 class SiteResource extends Resource
 {
@@ -22,6 +23,11 @@ class SiteResource extends Resource
     protected static ?string $navigationLabel = 'Sites à Crawler';
     protected static ?string $pluralModelLabel = 'sites';
     protected static ?string $modelLabel = 'site';
+
+    public static function getEloquentQuery(): Builder
+    {
+        return parent::getEloquentQuery()->where('user_id', Auth::id());
+    }
 
     public static function form(Form $form): Form
     {
@@ -59,8 +65,17 @@ class SiteResource extends Resource
     {
         return $table
             ->columns([
-                Tables\Columns\TextColumn::make('id')->sortable()->toggleable(isToggledHiddenByDefault: true),
-                Tables\Columns\TextColumn::make('url')->searchable()->sortable()->limit(70)->tooltip(fn(Site $record) => $record->url),
+                Tables\Columns\TextColumn::make('id')
+                ->sortable()
+                ->toggleable(isToggledHiddenByDefault: true),
+
+                Tables\Columns\TextColumn::make('url')
+                ->label('URL')
+                ->searchable()
+                ->sortable()
+                ->limit(70)
+                ->tooltip(fn(Site $record) => $record->url),
+
                 Tables\Columns\TextColumn::make('status_api') // Nom de la colonne
                     ->label('Statut API')
                     ->badge()
@@ -88,7 +103,7 @@ class SiteResource extends Resource
                 Tables\Actions\EditAction::make()->visible(fn(Site $record): bool => $record->status_api === SiteStatus::PENDING_SUBMISSION || $record->status_api === SiteStatus::FAILED_API_SUBMISSION),
                 Tables\Actions\DeleteAction::make(),
                 Tables\Actions\Action::make('sendToFastApiNow')
-                    ->label('Envoyer à FastAPI (Direct)')
+                    ->label('Envoyer')
                     ->icon('heroicon-o-paper-airplane')->color('warning')
                     ->requiresConfirmation()
                     ->form([ // AJOUT DU FORMULAIRE À L'ACTION
@@ -166,7 +181,15 @@ class SiteResource extends Resource
                 ]),
             ])
             ->headerActions([
-                Tables\Actions\CreateAction::make(),
+                Tables\Actions\CreateAction::make()
+                    ->mutateFormDataUsing(function (array $data): array {
+                        // Associer automatiquement le site à l'utilisateur connecté lors de la création
+                        $data['user_id'] = Auth::id();
+                        return $data;
+                    })
+                    ->after(function (Site $record) {
+                        // ... votre logique after() si elle existe ...
+                    }),
             ]);
     }
 
