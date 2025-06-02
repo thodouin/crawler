@@ -86,6 +86,7 @@ class SiteResource extends Resource
             ->actions([
                 Tables\Actions\ViewAction::make(),
                 Tables\Actions\EditAction::make()->visible(fn(Site $record): bool => $record->status_api === SiteStatus::PENDING_SUBMISSION || $record->status_api === SiteStatus::FAILED_API_SUBMISSION),
+                Tables\Actions\DeleteAction::make(),
                 Tables\Actions\Action::make('sendToFastApiNow')
                     ->label('Envoyer à FastAPI (Direct)')
                     ->icon('heroicon-o-paper-airplane')->color('warning')
@@ -101,6 +102,7 @@ class SiteResource extends Resource
                     ])
                     ->action(function (Site $record, array $data, FastApiService $fastApiService) {
                         if ($record->status_api === SiteStatus::PENDING_SUBMISSION || $record->status_api === SiteStatus::FAILED_API_SUBMISSION) {
+                            $maxDepthForBulk = (int) $data['max_depth'];
                             $success = $fastApiService->submitSiteForCrawling($record, $maxDepthForBulk); // Appel direct
                             if ($success) {
                                 Notification::make()->title('Demande traitée par FastAPI.')->body('Le statut du site a été mis à jour.')->success()->send();
