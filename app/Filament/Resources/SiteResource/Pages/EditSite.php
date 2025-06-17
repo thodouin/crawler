@@ -9,6 +9,8 @@ use Filament\Resources\Pages\EditRecord;
 class EditSite extends EditRecord
 {
     protected static string $resource = SiteResource::class;
+    
+    public ?string $maxContentWidth = 'full';
 
     protected function getHeaderActions(): array
     {

@@ -2,100 +2,186 @@
 
 namespace App\Jobs;
 
-use App\Models\Site; // Assurez-vous que le modèle Site est correctement importé
-use App\Services\FastApiService; // Assurez-vous que le service est correctement importé
+use App\Models\Site;
+use App\Models\User; // Renommé en CrawlerWorker dans la migration, mais le modèle User sert pour les "serveurs logiques"
+use App\Models\CrawlerWorker; // Modèle pour les workers FastAPI enregistrés
+use App\Services\FastApiService;
+use App\Enums\SiteStatus;
+use App\Enums\WorkerStatus; // Pour le statut du CrawlerWorker
+use App\Events\SiteStatusUpdated;
+use App\Events\CrawlerWorkerStatusChanged; // Nouvel événement pour le statut du worker
 use Illuminate\Bus\Queueable;
-use Illuminate\Contracts\Queue\ShouldQueue; // Implémentez ShouldQueue pour le traitement asynchrone
+use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Str;
 use Throwable;
+use Illuminate\Cache\Lock;
 
-class SendSiteToFastApiJob implements ShouldQueue // Important pour le traitement en arrière-plan
+class SendSiteToFastApiJob implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
-    /**
-     * Le nombre de fois où le job peut être tenté.
-     *
-     * @var int
-     */
-    public $tries = 3;
-
-    /**
-     * Le nombre de secondes à attendre avant de retenter le job.
-     * Peut être un tableau pour des backoffs exponentiels/personnalisés.
-     * @var int|array
-     */
-    public $backoff = [60, 180, 600]; // Attendre 1 min, puis 3 min, puis 10 min
-
-    /**
-     * L'instance du site à traiter.
-     *
-     * @var \App\Models\Site
-     */
+    public $tries = 1; // Si la soumission à FastAPI est rapide (ack/nack), 1 try peut suffire.
+                      // Si le crawl lui-même est fait dans ce job, il faut plus de tries.
+    public $backoff = [300, 600, 1800]; // 5min, 10min, 30min
     public Site $site;
+    public int $maxDepth;
+    public $deleteWhenMissingModels = true;
 
-    /**
-     * Create a new job instance.
-     *
-     * @param Site $site L'objet Site à envoyer à FastAPI
-     */
-    public function __construct(Site $site)
+    public function __construct(Site $site, int $maxDepth = 0)
     {
         $this->site = $site;
+        $this->maxDepth = $maxDepth;
     }
 
-    /**
-     * Execute the job.
-     *
-     * @param  \App\Services\FastApiService  $fastApiService
-     * @return void
-     */
-    public function handle(FastApiService $fastApiService): void
+    // Méthodes helper pour dispatcher les événements
+    protected function dispatchSiteUpdate(): void
     {
-        Log::info("Job: Tentative d'envoi du site ID {$this->site->id} ({$this->site->url}) à FastAPI.");
-
-        // Appel du service pour effectuer la soumission réelle
-        $submissionSuccessful = $fastApiService->submitSiteForCrawling($this->site);
-
-        if (!$submissionSuccessful) {
-            // Le service FastApiService met déjà à jour le statut du site et logue l'erreur.
-            // Le système de file d'attente (avec $tries et $backoff) gérera les nouvelles tentatives.
-            Log::warning("Job: Échec de l'envoi du site ID {$this->site->id} à FastAPI. Le job sera retenté si le nombre de tentatives n'est pas dépassé.");
-            
-            // Si vous voulez un comportement de "release" plus spécifique basé sur le type d'erreur,
-            // vous pouvez le faire ici, mais souvent le backoff automatique suffit.
-            // Par exemple, si c'est une erreur 4xx de FastAPI, pas la peine de retenter indéfiniment.
-            // $this->release(300); // Libère le job pour qu'il soit retenté après 300 secondes.
-        } else {
-            Log::info("Job: Site ID {$this->site->id} envoyé avec succès à FastAPI.");
+        if (class_exists(SiteStatusUpdated::class)) {
+            SiteStatusUpdated::dispatch($this->site->fresh());
         }
     }
 
-    /**
-     * Gérer un échec de job.
-     *
-     * @param  \Throwable  $exception
-     * @return void
-     */
-    public function failed(Throwable $exception): void // BON TYPE HINT
+    protected function dispatchWorkerUpdate(?CrawlerWorker $workerInstance): void
     {
-        // Ce code est exécuté si le job échoue après toutes ses tentatives.
-        Log::error("Job: Échec définitif de l'envoi du site ID {$this->site->id} à FastAPI après {$this->attempts()} tentatives.", [
-            'exception_message' => $exception->getMessage(),
-            'site_url' => $this->site->url,
-            // Vous devriez ajouter la trace ici pour comprendre POURQUOI le job a échoué à l'origine
-            'exception_trace' => \Illuminate\Support\Str::limit($exception->getTraceAsString(), 2000) 
-        ]);
+        if ($workerInstance && class_exists(CrawlerWorkerStatusChanged::class)) {
+            CrawlerWorkerStatusChanged::dispatch($workerInstance->fresh());
+        }
+    }
 
-        // Mettre à jour le statut du site pour refléter l'échec définitif
-        // Assurez-vous que l'Enum et le cas existent.
-        // Si 'SiteStatus' est dans le namespace App\Enums, le use statement du service suffit
-        $this->site->update([
-            'status_api' => \App\Enums\SiteStatus::FAILED_API_SUBMISSION, // Assurez-vous que ce cas existe et que SiteStatus est le bon Enum
-            'last_api_response' => 'Échec du Job après toutes les tentatives: ' . \Illuminate\Support\Str::limit($exception->getMessage(), 255),
-        ]);
+    public function handle(FastApiService $fastApiService): void
+    {
+        Log::info("Job Handle: Démarrage pour Site ID {$this->site->id} (assigné au CrawlerWorker ID {$this->site->crawler_worker_id}). Profondeur: {$this->maxDepth}. Tentative #{$this->attempts()}");
+
+        if (!$this->site->crawler_worker_id) {
+            Log::error("Job Handle: Site ID {$this->site->id} n'a pas de crawler_worker_id. Échec.");
+            $this->failAndReleaseWorker(new \Exception("Site ID {$this->site->id} n'a pas de worker assigné."), null);
+            return;
+        }
+
+        $worker = CrawlerWorker::find($this->site->crawler_worker_id);
+        if (!$worker) {
+            Log::error("Job Handle: CrawlerWorker ID {$this->site->crawler_worker_id} pour Site ID {$this->site->id} non trouvé. Échec.");
+            $this->failAndReleaseWorker(new \Exception("CrawlerWorker ID {$this->site->crawler_worker_id} non trouvé."), null); // Pas de worker à libérer
+            return;
+        }
+
+        /** @var Lock|null $lock */
+        $lock = null;
+        $lockAcquired = false;
+
+        try {
+            $lock = Cache::lock('crawler_worker_processing_lock_' . $worker->id, 20); // Lock sur l'ID du worker
+            if (!$lock->get()) {
+                Log::info("Job Handle: Verrou non obtenu pour Worker ID {$worker->id}, Site ID {$this->site->id}. Remise en file.");
+                $this->release(45 + rand(0,15)); // Jitter pour éviter thundering herd
+                return; 
+            }
+            $lockAcquired = true;
+
+            $worker->refresh(); // Obtenir l'état le plus récent du worker
+            if ($worker->status === WorkerStatus::ONLINE_BUSY && $worker->current_site_id_processing !== $this->site->id) {
+                Log::info("Job Handle: Worker ID {$worker->id} ({$worker->name}) est PRIS par Site ID {$worker->current_site_id_processing}. Site ID {$this->site->id} est relâché.");
+                $this->release(75 + rand(0,15));
+                return;
+            }
+
+            // Marquer le Worker comme PRIS et le Site comme en traitement
+            $worker->status = WorkerStatus::ONLINE_BUSY;
+            $worker->current_site_id_processing = $this->site->id;
+            $worker->save();
+            $this->dispatchWorkerUpdate($worker);
+
+            $originalSiteStatus = $this->site->status_api;
+            $this->site->status_api = SiteStatus::PROCESSING_BY_API;
+            $this->site->last_api_response = "Envoi commande WebSocket à worker {$worker->name} (ID: {$worker->worker_identifier})...";
+            $this->site->save();
+            if ($originalSiteStatus !== $this->site->status_api) $this->dispatchSiteUpdate();
+
+            // Appel au service FastAPI
+            $result = $fastApiService->sendCrawlCommandViaWebSocket($this->site, $this->maxDepth);
+            
+            // Le FastApiService met à jour le statut du site (SUBMITTED_TO_API ou FAILED_API_SUBMISSION) et le sauvegarde.
+            // On rediffuse l'événement pour le site.
+            $this->dispatchSiteUpdate();
+
+            if (!$result['success']) {
+                Log::warning("Job Handle: Échec de la commande WebSocket pour Site ID {$this->site->id} vers Worker {$worker->worker_identifier}. Message: {$result['message']}");
+                // Si l'erreur est critique, faire échouer le job. La méthode failed() s'occupera de libérer le worker.
+                if (str_contains($result['message'], 'FastAPI WebSocket URL non définie') || str_contains($result['message'], 'Exception de connexion WebSocket')) {
+                    $this->fail(new \Exception("Erreur critique soumission WebSocket Site ID {$this->site->id}: " . ($result['message'] ?? 'Erreur inconnue')));
+                    return; 
+                }
+                // Pour d'autres erreurs (FastAPI refuse, etc.), le job va se terminer ici.
+                // Le worker sera libéré dans le finally si ce n'est pas un fail().
+                // Si $tries > 1, il sera retenté.
+            } else {
+                Log::info("Job Handle: Commande WebSocket pour Site ID {$this->site->id} acceptée par Worker {$worker->worker_identifier}. Attente callback FastAPI.");
+                // Le statut du site est SUBMITTED_TO_API. Le worker Laravel reste PRIS.
+                // La libération du worker se fera via le webhook de FastAPI.
+            }
+
+        } catch (Throwable $e) {
+            Log::error("Job Handle: Exception majeure pour Site ID {$this->site->id} avec Worker ID {$worker->id}. Erreur: " . $e->getMessage(), ['trace' => Str::limit($e->getTraceAsString(), 1000)]);
+            $this->failAndReleaseWorker($e, $worker, $lock, $lockAcquired); // Utiliser une méthode helper
+            return;
+        } finally {
+            // Libérer le verrou si acquis
+            if ($lockAcquired && $lock) {
+                $lock->release();
+                Log::info("Job Handle (finally): Verrou pour Worker ID " . ($worker->id ?? 'inconnu') . " libéré.");
+            }
+            // La libération du worker se fait maintenant via webhook ou dans failed(),
+            // ou si une exception a été attrapée et que le job est fail() par cette exception.
+            // Si $result['success'] est false et que le job n'a pas été fail(), il faut libérer ici.
+            if (isset($result) && !$result['success'] && isset($worker) && $worker instanceof CrawlerWorker && !$this->job->hasFailed() && !$this->job->isReleased()) {
+                if ($worker->current_site_id_processing == $this->site->id) {
+                    $worker->status = WorkerStatus::ONLINE_IDLE;
+                    $worker->current_site_id_processing = null;
+                    $worker->save();
+                    $this->dispatchWorkerUpdate($worker);
+                    Log::info("Job Handle (finally - après échec soumission WS non-fail): Worker ID {$worker->id} marqué LIBRE.");
+                }
+            }
+        }
+    }
+
+    // Méthode helper pour centraliser la logique de fail + libération worker
+    protected function failAndReleaseWorker(Throwable $exception, ?CrawlerWorker $worker, ?Lock $lock = null, bool $lockAcquired = false): void
+    {
+        if ($lockAcquired && $lock) { $lock->release(); } // Libérer le verrou d'abord
+        if ($worker && $worker->current_site_id_processing === $this->site->id) {
+            $worker->status = WorkerStatus::ONLINE_IDLE;
+            $worker->current_site_id_processing = null;
+            $worker->save();
+            $this->dispatchWorkerUpdate($worker);
+        }
+        $this->fail($exception);
+    }
+
+    public function failed(Throwable $exception): void {
+        Log::error("Job Failed: Échec définitif pour Site ID {$this->site->id} (assigné à CrawlerWorker ID: {$this->site->crawler_worker_id})", [/* ... */]);
+        $siteToUpdate = Site::find($this->site->id);
+        if($siteToUpdate){
+             $originalStatus = $siteToUpdate->status_api;
+             $siteToUpdate->status_api = SiteStatus::FAILED_API_SUBMISSION;
+             $siteToUpdate->last_api_response = 'Échec Job (WebSocket): ' . Str::limit($exception->getMessage(), 250);
+             $siteToUpdate->saveQuietly();
+             if ($originalStatus !== SiteStatus::FAILED_API_SUBMISSION) $this->dispatchSiteUpdate();
+
+             if ($siteToUpdate->crawler_worker_id) {
+                 $workerToFree = CrawlerWorker::find($siteToUpdate->crawler_worker_id);
+                 if ($workerToFree && $workerToFree->current_site_id_processing === $siteToUpdate->id) {
+                     $workerToFree->status = WorkerStatus::ONLINE_IDLE;
+                     $workerToFree->current_site_id_processing = null;
+                     $workerToFree->save();
+                     $this->dispatchWorkerUpdate($workerToFree);
+                 }
+             }
+        }
     }
 }

@@ -3,9 +3,16 @@
 namespace App\Filament\Resources;
 
 use App\Enums\SiteStatus; // UTILISER LE BON ENUM PARTOUT
+use App\Enums\SitePriority;
+use App\Enums\WorkerStatus;
 use App\Filament\Resources\SiteResource\Pages;
 use App\Models\Site;
+use App\Models\User;
+use App\Models\CrawlerWorker;
+use App\Events\SiteStatusUpdated;
+use App\Events\CrawlerWorkerStatusChanged;
 use App\Services\FastApiService; // Pour l'appel direct
+use App\Jobs\SendSiteToFastApiJob;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
@@ -15,19 +22,26 @@ use Filament\Notifications\Notification;
 use Illuminate\Database\Eloquent\Collection as EloquentCollection;
 use Illuminate\Database\Eloquent\Builder; // IMPORTANT pour le scope
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
+use Carbon\Carbon;
 
 class SiteResource extends Resource
 {
     protected static ?string $model = Site::class;
+    protected static ?string $navigationGroup = 'Crawling';
     protected static ?string $navigationIcon = 'heroicon-o-globe-alt';
     protected static ?string $navigationLabel = 'Sites à Crawler';
     protected static ?string $pluralModelLabel = 'sites';
     protected static ?string $modelLabel = 'site';
 
     public static function getEloquentQuery(): Builder
-    {
-        return parent::getEloquentQuery()->where('user_id', Auth::id());
-    }
+ {
+     // Si l'utilisateur connecté est l'admin spécifique, il voit tous les sites.
+     if (Auth::check() && Auth::user()->email === 'admin@admin.com') {
+         return parent::getEloquentQuery();
+     }
+     return parent::getEloquentQuery()->where('user_id', Auth::id());
+ }
 
     public static function form(Form $form): Form
     {
@@ -39,20 +53,31 @@ class SiteResource extends Resource
                 ->unique(table: Site::class, column: 'url', ignoreRecord: true)
                 ->maxLength(2048)
                 ->columnSpanFull(),
+
             Forms\Components\Select::make('status_api') // Nom de la colonne dans la BDD
                 ->label('Statut API')
                 ->options(SiteStatus::class) // L'Enum doit implémenter HasLabel
                 ->disabled()
                 ->dehydrated(false) // Ne pas sauvegarder via le formulaire si désactivé
                 ->columnSpanFull(),
+
+            Forms\Components\Select::make('priority') // CHAMP PRIORITÉ À LA CRÉATION/ÉDITION
+                ->label('Priorité du Crawl')
+                ->options(SitePriority::class) // Utilise votre Enum SitePriority
+                ->default(SitePriority::NORMAL->value) // Défaut à Normal
+                ->required()
+                ->columnSpanFull(),
+
             Forms\Components\TextInput::make('fastapi_job_id')
                 ->label('ID Tâche FastAPI')
                 ->disabled()
                 ->dehydrated(false),
+
             Forms\Components\DateTimePicker::make('last_sent_to_api_at')
                 ->label('Dernier envoi/réponse API') // Libellé plus précis
                 ->disabled()
                 ->dehydrated(false),
+
             Forms\Components\Textarea::make('last_api_response')
                 ->label('Dernière réponse API')
                 ->disabled()
@@ -79,117 +104,246 @@ class SiteResource extends Resource
                 Tables\Columns\TextColumn::make('status_api') // Nom de la colonne
                     ->label('Statut API')
                     ->badge()
-                    ->color(fn (SiteStatus $state): string => match ($state) { // S'assurer que $state est bien une instance de SiteStatus
+                    ->color(fn (SiteStatus $state): string => match ($state) {
+                        SiteStatus::PENDING_ASSIGNMENT => 'heroicon-o-clock',
                         SiteStatus::PENDING_SUBMISSION => 'gray',
                         SiteStatus::SUBMITTED_TO_API => 'info',
                         SiteStatus::PROCESSING_BY_API => 'warning',
                         SiteStatus::COMPLETED_BY_API => 'success',
                         SiteStatus::FAILED_API_SUBMISSION => 'danger',
                         SiteStatus::FAILED_PROCESSING_BY_API => 'danger',
+                        null => 'primary',
                         default => 'gray',
                     })
-                    ->searchable()->sortable(),
-                Tables\Columns\TextColumn::make('last_sent_to_api_at')->label('Dernière Activité API')->dateTime('d/m/Y H:i')->sortable(),
-                Tables\Columns\TextColumn::make('fastapi_job_id')->label('ID FastAPI')->searchable()->toggleable(isToggledHiddenByDefault: true),
-                Tables\Columns\TextColumn::make('created_at')->label('Créé le')->dateTime('d/m/Y H:i')->sortable()->toggleable(isToggledHiddenByDefault: true),
+                    ->formatStateUsing(fn (?SiteStatus $state): string => $state?->getLabel() ?? 'N/A')
+                    ->searchable()
+                    ->sortable(),
+
+                    Tables\Columns\TextColumn::make('priority')
+                    ->label('Priorité')
+                    ->badge()
+                    // Le $state ici sera une instance de SitePriority ou null
+                    ->color(fn (?SitePriority $state): string => match ($state) { // <<< TYPE HINT CORRIGÉ
+                        SitePriority::URGENT => 'danger',  // Comparer directement avec les cas de l'Enum
+                        SitePriority::NORMAL => 'primary',
+                        SitePriority::LOW    => 'gray',
+                        null => 'secondary', // Gérer le cas où la priorité est nulle
+                        // default n'est pas nécessaire si tous les cas de l'enum + null sont couverts
+                    })
+                    // Le $state ici sera aussi une instance de SitePriority ou null
+                    ->formatStateUsing(function (?SitePriority $state): string { // <<< TYPE HINT CORRIGÉ
+                        if (is_null($state)) {
+                            return 'N/A';
+                        }
+                        // L'Enum SitePriority implémente HasLabel, donc getLabel() est disponible
+                        return $state->getLabel(); 
+                    })
+                    ->sortable() // Le tri se fera sur la valeur brute en BDD ('urgent', 'normal', 'low')
+                    ->toggleable(),
+
+                Tables\Columns\TextColumn::make('user.name') // Ou 'user.email'
+                    ->label('Assigné à')
+                    ->searchable()
+                    ->sortable()
+                    ->placeholder('Non assigné')
+                    ->toggleable(),
+
+                Tables\Columns\TextColumn::make('crawlerWorker.name') // AFFICHER LE NOM DU WORKER
+                    ->label('Worker Assigné')
+                    ->searchable()
+                    ->sortable()
+                    ->placeholder('Non assigné')
+                    ->toggleable(),
+
+                Tables\Columns\TextColumn::make('last_sent_to_api_at')
+                    ->label('Dernière Activité API')
+                    ->formatStateUsing(function (?string $state): string { // Utiliser formatStateUsing pour personnaliser l'affichage
+                        if (is_null($state)) {
+                            return 'Jamais'; // Ou ce que vous préférez si la date est nulle
+                        }
+                        // Carbon::parse($state) convertit la chaîne de date de la BDD en objet Carbon
+                        // ->diffForHumans() génère la chaîne relative
+                        return Carbon::parse($state)->locale(config('app.locale', 'fr'))->diffForHumans();
+                    })
+                    ->sortable()
+                    ->toggleable(),
+
+                Tables\Columns\TextColumn::make('fastapi_job_id')
+                    ->label('ID FastAPI')
+                    ->searchable()
+                    ->toggleable(isToggledHiddenByDefault: true),
+
+                Tables\Columns\TextColumn::make('created_at')
+                    ->label('Créé le')
+                    ->dateTime('d/m/Y H:i')
+                    ->sortable()
+                    ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
                 Tables\Filters\SelectFilter::make('status_api') // Nom de la colonne
                     ->options(SiteStatus::class) // L'Enum doit implémenter HasLabel
-                    ->label('Filtrer par Statut API') // Label pour le filtre
+                    ->label('Filtrer par Statut API'), // Label pour le filtre
+
+                Tables\Filters\SelectFilter::make('user_id') // Filtre par utilisateur assigné
+                    ->label('Filtrer par Serveur')
+                    ->options(fn () => User::where('email', '!=', 'admin@admin.com')->pluck('name', 'id')) // Lister les serveurs
+                    ->searchable()
+                    ->preload(),
+
+                Tables\Filters\SelectFilter::make('crawler_worker_id')
+                    ->label('Filtrer par Worker')
+                    ->relationship('crawlerWorker', 'name') // Filtrer par la relation
+                    ->searchable()
+                    ->preload(),
             ])
             ->actions([
                 Tables\Actions\ViewAction::make(),
                 Tables\Actions\EditAction::make()->visible(fn(Site $record): bool => $record->status_api === SiteStatus::PENDING_SUBMISSION || $record->status_api === SiteStatus::FAILED_API_SUBMISSION),
                 Tables\Actions\DeleteAction::make(),
-                Tables\Actions\Action::make('sendToFastApiNow')
-                    ->label('Envoyer')
-                    ->icon('heroicon-o-paper-airplane')->color('warning')
-                    ->requiresConfirmation()
-                    ->form([ // AJOUT DU FORMULAIRE À L'ACTION
-                        Forms\Components\TextInput::make('max_depth')
-                            ->label('Profondeur Max (Max Depth)')
-                            ->helperText('0 pour la page d\'accueil seulement, 1 pour la page d\'accueil et ses liens directs, etc.')
-                            ->numeric()
-                            ->default(0) // Valeur par défaut pour un crawl rapide
-                            ->minValue(0)
-                            ->required(),
-                    ])
-                    ->action(function (Site $record, array $data, FastApiService $fastApiService) {
-                        if ($record->status_api === SiteStatus::PENDING_SUBMISSION || $record->status_api === SiteStatus::FAILED_API_SUBMISSION) {
-                            $maxDepthForBulk = (int) $data['max_depth'];
-                            $success = $fastApiService->submitSiteForCrawling($record, $maxDepthForBulk); // Appel direct
-                            if ($success) {
-                                Notification::make()->title('Demande traitée par FastAPI.')->body('Le statut du site a été mis à jour.')->success()->send();
-                            } else {
-                                Notification::make()->title('Échec de la communication avec FastAPI.')->body('Vérifiez les logs et le statut du site.')->danger()->send();
-                            }
-                        } else {
-                            Notification::make()->title('Action non permise')->body('Ce site a déjà été soumis, est en cours, ou est terminé.')->warning()->send();
-                        }
-                    })
-                    ->visible(fn(Site $record): bool => $record->status_api === SiteStatus::PENDING_SUBMISSION || $record->status_api === SiteStatus::FAILED_API_SUBMISSION),
             ])
-            ->bulkActions([ // UN SEUL BLOC bulkActions
+            ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
                     Tables\Actions\DeleteBulkAction::make(),
-                    Tables\Actions\BulkAction::make('sendSelectedToFastApiNow') // Appel direct
-                        ->label('Envoyer Sélection (Direct)')
-                        ->icon('heroicon-o-paper-airplane')->color('primary') // Couleur ajustée
+            
+                    // BULK ACTION POUR MARQUER URGENT
+                    Tables\Actions\BulkAction::make('markPriorityUrgent')
+                        ->label('Marquer Priorité: Urgent')
+                        ->icon('heroicon-o-exclamation-triangle') // Icône plus adaptée pour marquer
+                        ->color('danger')
                         ->requiresConfirmation()
-                        ->form([ // AJOUT DU FORMULAIRE À LA BULKACTION
+                        ->modalHeading('Changer la priorité en Urgent')
+                        ->modalDescription('Voulez-vous marquer les sites sélectionnés comme Urgents ? Cela ne les renverra pas à FastAPI.')
+                        ->action(fn (EloquentCollection $records) => 
+                            $records->each->update(['priority' => SitePriority::URGENT->value])
+                        )
+                        ->deselectRecordsAfterCompletion(), // Bonne pratique
+            
+                    // BULK ACTION POUR MARQUER NORMAL
+                    Tables\Actions\BulkAction::make('markPriorityNormal')
+                        ->label('Marquer Priorité: Normal')
+                        ->icon('heroicon-o-check-circle')
+                        ->color('primary')
+                        ->requiresConfirmation()
+                        ->modalHeading('Changer la priorité en Normal')
+                        ->modalDescription('Voulez-vous marquer les sites sélectionnés comme Normaux ?')
+                        ->action(fn (EloquentCollection $records) => 
+                            $records->each->update(['priority' => SitePriority::NORMAL->value])
+                        )
+                        ->deselectRecordsAfterCompletion(),
+            
+                    // BULK ACTION POUR MARQUER LENT
+                    Tables\Actions\BulkAction::make('markPriorityLow')
+                        ->label('Marquer Priorité: Lent')
+                        ->icon('heroicon-o-minus-circle')
+                        ->color('gray')
+                        ->requiresConfirmation()
+                        ->modalHeading('Changer la priorité en Lent')
+                        ->modalDescription('Voulez-vous marquer les sites sélectionnés comme Lents ?')
+                        ->action(fn (EloquentCollection $records) => 
+                            $records->each->update(['priority' => SitePriority::LOW->value])
+                        )
+                        ->deselectRecordsAfterCompletion(),
+                    
+                    // LA BULKACTION SÉPARÉE POUR ENVOYER (utilise la priorité existante du site)
+                    Tables\Actions\BulkAction::make('assignAndSendSelectedToFastApiJobAction')
+                        ->label('Assigner & Envoyer Sélection (Job)')
+                        ->icon('heroicon-o-arrow-up-on-square-stack')
+                        ->color('success')
+                        ->requiresConfirmation()
+                        ->form([
                             Forms\Components\TextInput::make('max_depth')
-                                ->label('Profondeur Max (Max Depth) pour tous les sites sélectionnés')
-                                ->helperText('Appliqué à tous les sites. 0 pour la page d\'accueil seulement.')
-                                ->numeric()
-                                ->default(0) // Valeur par défaut
-                                ->minValue(0)
-                                ->required(),
+                                ->numeric()->default(0)->minValue(0)
+                                ->required(fn (Forms\Get $get): bool => !$get('crawl_all_links')),
+                            Forms\Components\Checkbox::make('crawl_all_links')
+                                ->default(false)->reactive(),
                         ])
-                        ->modalHeading('Envoyer les sites sélectionnés à FastAPI')
-                        ->modalDescription('Cela enverra chaque site éligible directement à FastAPI. L\'interface peut être bloquée pendant le traitement.')
-                        ->action(function (EloquentCollection $records, FastApiService $fastApiService, array $data) {
-                            $sentCount = 0;
-                            $errorCount = 0;
+                        ->modalHeading('Assigner et Envoyer les sites sélectionnés à FastAPI')
+                        ->action(function (EloquentCollection $records, array $data) {
+                            $maxDepthForBulk = $data['crawl_all_links'] ? -1 : (int) $data['max_depth'];
+                            
+                            $jobDispatchedCount = 0;
                             $skippedCount = 0;
-                            $maxDepthForBulk = $data['max_depth'];
+                            $assignedCount = 0;
+                            $putInQueueForServerCount = 0;
 
-                            foreach ($records as $record) {
-                                if ($record->status_api === SiteStatus::PENDING_SUBMISSION || $record->status_api === SiteStatus::FAILED_API_SUBMISSION) {
-                                    $success = $fastApiService->submitSiteForCrawling($record, $maxDepthForBulk); // Appel direct
-                                    if ($success) { $sentCount++; }
-                                    else { $errorCount++; }
+                            // Tri des enregistrements par priorité (votre logique de tri ici)
+                            $priorityOrder = [
+                                SitePriority::URGENT->value => 1,
+                                SitePriority::NORMAL->value => 2,
+                                SitePriority::LOW->value    => 3,
+                                null => 4, 
+                            ];
+                        
+                            $sortedRecords = $records->sortBy(function ($site) use ($priorityOrder) {
+                                $priorityValue = $site->priority?->value;
+                                return $priorityOrder[$priorityValue] ?? $priorityOrder[null];
+                            })->values();
+
+                            Log::info("BulkAction: Sites à traiter après tri par priorité:", ['count' => $sortedRecords->count()]);
+
+                            foreach ($sortedRecords as $record) {
+                                $isEligible = is_null($record->status_api) ||
+                                              $record->status_api === SiteStatus::PENDING_ASSIGNMENT ||
+                                              $record->status_api === SiteStatus::FAILED_API_SUBMISSION;
+                    
+                                if ($isEligible) {
+                                    // Tenter de trouver un CrawlerWorker LIBRE
+                                    $availableWorker = CrawlerWorker::where('status', WorkerStatus::ONLINE_IDLE)
+                                                          ->whereNull('current_site_id_processing')
+                                                          ->orderBy('last_heartbeat_at', 'asc') // Pour choisir le premier libre par ID
+                                                          ->first();
+                            
+                                    if ($availableWorker) 
+                                    {
+                                        Log::info("BulkAction: Site ID {$record->id} (Priorité: {$record->priority?->getLabel()}) assigné au Worker ID {$availableWorker->id} ({$availableWorker->name}).");
+                                        
+                                        $record->crawler_worker_id = $availableWorker->id; // Assigner crawler_worker_id
+                                        $record->status_api = SiteStatus::PENDING_SUBMISSION;
+                                        $record->last_api_response = 'En attente d\'envoi à FastAPI (assigné à: ' . $availableWorker->name . ')';
+                                        $record->save();
+                                                            
+                                        if (class_exists(SiteStatusUpdated::class)) {
+                                            SiteStatusUpdated::dispatch($record->fresh());
+                                        }
+                                        
+                                        $assignedCount++;
+                                        SendSiteToFastApiJob::dispatch($record, $maxDepthForBulk);
+                                        $jobDispatchedCount++;
+                                    } else {
+                                        $putInQueueForServerCount++;
+                                        $record->crawler_worker_id = null; // S'assurer qu'il n'y a pas d'ancienne assignation
+                                        $record->status_api = SiteStatus::PENDING_ASSIGNMENT;
+                                        $record->last_api_response = 'En attente d\'un Worker FastAPI disponible.';
+                                        $record->save();
+                                        if (class_exists(SiteStatusUpdated::class)) {
+                                            SiteStatusUpdated::dispatch($record->fresh());
+                                        }
+                                        Log::info("BulkAction: Aucun Worker LIBRE pour Site ID {$record->id}. Mis en statut PENDING_ASSIGNMENT.");
+                                    }
                                 } else {
                                     $skippedCount++;
+                                    Log::info("BulkAction: Site ID {$record->id} ignoré (statut: " . ($record->status_api?->value ?? 'NULL') . ")");
                                 }
                             }
+                            
+                            // ... (Logique de notification) ...
                             $messages = [];
-                            if ($sentCount > 0) $messages[] = "{$sentCount} site(s) traités par FastAPI avec max_depth={$maxDepthForBulk}.";
-                            if ($errorCount > 0) $messages[] = "Échec pour {$errorCount} site(s).";
-                            if ($skippedCount > 0) $messages[] = "{$skippedCount} site(s) ignorés (statut non éligible).";
-
-                            if (empty($messages)) {
-                                Notification::make()->title('Aucune action effectuée.')->body('Aucun site sélectionné n\'était éligible pour l\'envoi.')->warning()->send();
-                            } else {
-                                Notification::make()->title('Traitement en masse terminé')
-                                    ->body(implode(' ', $messages))
-                                    ->success($errorCount === 0 && $sentCount > 0)
-                                    ->danger($errorCount > 0)
-                                    ->send();
-                            }
+                            if ($assignedCount > 0) $messages[] = "{$assignedCount} site(s) assignés à un worker et préparés.";
+                            if ($jobDispatchedCount > 0) $messages[] = "{$jobDispatchedCount} job(s) d'envoi mis en file d'attente.";
+                            if ($putInQueueForServerCount > 0) $messages[] = "{$putInQueueForServerCount} site(s) mis en attente d'un worker libre.";
+                            if ($skippedCount > 0) $messages[] = "{$skippedCount} site(s) ignorés.";
+                            Notification::make()->title('Actions en masse initiées')->body(implode(' ', $messages))->success()->send();
                         }),
                 ]),
             ])
             ->headerActions([
                 Tables\Actions\CreateAction::make()
-                    ->mutateFormDataUsing(function (array $data): array {
-                        // Associer automatiquement le site à l'utilisateur connecté lors de la création
-                        $data['user_id'] = Auth::id();
-                        return $data;
-                    })
-                    ->after(function (Site $record) {
-                        // ... votre logique after() si elle existe ...
-                    }),
+                ->mutateFormDataUsing(function (array $data): array {
+                    // NE PAS assigner user_id ici pour qu'il soit NULL par défaut
+                    // $data['user_id'] = Auth::id(); // COMMENTER ou SUPPRIMER
+                    // status_api sera NULL aussi si la colonne BDD le permet et qu'on ne le définit pas
+                    return $data;
+                })
             ]);
     }
 

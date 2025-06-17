@@ -2,118 +2,116 @@
 
 namespace App\Services;
 
-use App\Models\Site; // Assurez-vous que le modèle Site est correctement importé
-use App\Enums\SiteStatus; // Assurez-vous que l'Enum SiteStatus est correctement importé
-use Illuminate\Support\Facades\Http;
+use App\Models\Site;
+use App\Models\CrawlerWorker; // Utiliser le modèle CrawlerWorker
+use App\Enums\SiteStatus;
+use App\Enums\WorkerStatus; // Si vous l'utilisez pour le worker Laravel
+use Illuminate\Support\Facades\Http; // Garder pour un éventuel appel API HTTP pour le webhook
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
-use Throwable; // Pour attraper toutes les erreurs/exceptions
+use Throwable;
+use WebSocket\Client as WebSocketClient; // textalk/websocket
+use WebSocket\ConnectionException;
 
 class FastApiService
 {
-    protected string $apiUrlBase; // L'URL de base de l'API FastAPI
-    protected ?string $apiKey;   // La clé API si votre FastAPI l'utilise
+    protected string $laravelAppUrl;
+    protected ?string $globalApiKey;
 
     public function __construct()
     {
-        // rtrim pour s'assurer qu'il n'y a pas de slash en double à la fin de l'URL
-        $this->apiUrlBase = rtrim(config('services.fastapi.url'), '/');
-        $this->apiKey = config('services.fastapi.key');
+        // Note: config('services.fastapi.url') n'est plus utilisé directement ici
+        // car l'URL du worker est dans la table CrawlerWorker.
+        // config('services.fastapi.key') pourrait être une clé globale si FastAPI la requiert pour WS.
+        // $this->globalApiKey = config('services.fastapi.key'); // Si vous avez une clé API globale pour FastAPI
+        $this->laravelAppUrl = rtrim(config('app.url'), '/'); // URL de base de votre app Laravel
     }
 
     /**
-     * Soumet un site à l'API FastAPI pour le crawling.
+     * Envoie une commande de crawl à une instance FastAPI spécifique via WebSocket.
      *
-     * @param Site $site L'objet Site à envoyer.
-     * @return bool Retourne true en cas de succès de la soumission, false sinon.
+     * @param Site $site L'objet Site Laravel (qui a une relation crawlerWorker).
+     * @param int $maxDepth La profondeur de crawl.
+     * @param int $maxConcurrency Concurrence des pages pour ce crawl par FastAPI.
+     * @param string|null $outputDir Répertoire de sortie de base sur le worker FastAPI.
+     * @return array{success: bool, message: string, fastapi_raw_response: ?array}
      */
-    public function submitSiteForCrawling(Site $site, int $maxDepth = 0): bool
-    {
-        if (empty($this->apiUrlBase)) {
-            Log::error("FastAPI URL non configurée. Site ID: {$site->id}");
-            $site->fill([
-                'status_api' => SiteStatus::FAILED_API_SUBMISSION, // Utilisez le bon Enum
-                'last_api_response' => 'Erreur de configuration: FastAPI URL non définie.',
-            ])->save();
-            return false;
+    public function sendCrawlCommandViaWebSocket(
+        Site $site, // Le site contient déjà crawler_worker_id
+        int $maxDepth = 0,
+        int $maxConcurrency = 8,
+        ?string $outputDir = null
+    ): array {
+        $defaultResponse = ['success' => false, 'message' => 'Initialisation envoi WS échouée.', 'fastapi_raw_response' => null];
+
+        $site->loadMissing('crawlerWorker');
+        $worker = $site->crawlerWorker;
+
+        if (!$worker || empty($worker->ip_address) || empty($worker->port) || empty($worker->ws_protocol)) {
+            $msg = "Infos de connexion WebSocket incomplètes pour CrawlerWorker ID {$site->crawler_worker_id}. Site ID: {$site->id}";
+            Log::error($msg);
+            $site->fill(['status_api' => SiteStatus::FAILED_API_SUBMISSION, 'last_api_response' => $msg])->saveQuietly();
+            // Dispatcher l'événement de mise à jour du site ici si nécessaire
+            if (class_exists(\App\Events\SiteStatusUpdated::class)) { \App\Events\SiteStatusUpdated::dispatch($site->fresh()); }
+            $defaultResponse['message'] = $msg;
+            return $defaultResponse;
         }
 
-        $endpoint = $this->apiUrlBase . '/crawl_single_url/'; // C'est le bon endpoint
+        $wsEndpointPath = config('services.fastapi.ws_endpoint_path', '/ws');
+        $targetWsUrl = "{$worker->ws_protocol}://{$worker->ip_address}:{$worker->port}{$wsEndpointPath}";
 
+        // Définir l'URL de callback pour que FastAPI puisse notifier Laravel
+        $callbackUrl = $this->laravelAppUrl . route('api.workers.taskUpdate', [], false); // false pour URL relative au domaine
+
+        $crawlPayload = [
+            'url' => $site->url, // FastAPI attend 'urls': [string]
+            'output_dir' => $outputDir ?? "./crawl_output_site_{$site->id}_worker_{$worker->worker_identifier}",
+            'max_concurrency' => $maxConcurrency,
+            'max_depth' => $maxDepth,
+            'site_id_laravel' => $site->id, // Pour que FastAPI puisse le renvoyer
+            'worker_identifier_laravel' => $worker->worker_identifier, // L'ID du worker FastAPI
+            'callback_url' => $callbackUrl, // URL que FastAPI appellera à la fin
+            'priority' => $site->priority?->value, // Envoyer la priorité
+        ];
+        $messageToSend = ['action' => 'start_crawl', 'payload' => $crawlPayload];
+
+        Log::info("FastApiService (WebSocket): Connexion à {$targetWsUrl} pour Site ID {$site->id}");
+        $client = null;
         try {
-            $formData = [
-                'url' => $site->url,
-                'max_depth' => $maxDepth,
-            ];
+            $client = new WebSocketClient($targetWsUrl, ['timeout' => 10]); // Timeout de connexion de 10s
+            Log::info("FastApiService (WebSocket): Envoi commande à {$targetWsUrl} pour Site ID {$site->id}: ", $messageToSend);
+            $client->send(json_encode($messageToSend));
 
-            $request = Http::timeout(3600); // Augmenter légèrement le timeout général si les crawls peuvent être longs à initier
+            // Attendre un accusé de réception (timeout géré par la bibliothèque, souvent 60s par défaut pour receive)
+            $rawResponse = $client->receive(); // Potentiellement bloquant
+            $receivedData = json_decode($rawResponse, true);
+            Log::info("FastApiService (WebSocket): Réponse de {$targetWsUrl} pour Site ID {$site->id}: ", ['raw_response' => $rawResponse]);
 
-            if ($this->apiKey) {
-                // Adaptez si FastAPI attend la clé API dans le formulaire ou ailleurs
-                // $formData['api_key'] = $this->apiKey; // Si attendu dans le formulaire
-                $request->withHeaders(['X-API-KEY' => $this->apiKey]); // Si attendu en header
-            }
-            
-            Log::info("Envoi du site ID {$site->id} à FastAPI endpoint: " . $endpoint, ['form_data_to_send' => $formData]);
-            $response = $request->asForm()->post($endpoint, $formData);
+            if ($receivedData && isset($receivedData['type']) && $receivedData['type'] === 'ack') {
+                $site->status_api = SiteStatus::SUBMITTED_TO_API; // Tâche acceptée par FastAPI
+                $site->fastapi_job_id = $receivedData['assignment_id'] ?? $receivedData['task_id'] ?? $site->fastapi_job_id; // Si FastAPI renvoie un ID de tâche pour ce crawl
+                $site->last_sent_to_api_at = now();
+                $site->last_api_response = 'Commande de crawl acceptée par FastAPI worker ' . $worker->name . '. En attente de callback.';
+                $site->saveQuietly();
+                // L'événement SiteStatusUpdated sera dispatché par le Job après cet appel
 
-            if ($response->successful()) {
-                $responseData = $response->json(); // FastAPI devrait toujours répondre avec du JSON
-                Log::info("Réponse de FastAPI reçue pour site ID {$site->id}: ", $responseData);
-
-                $finalLaravelStatus = SiteStatus::FAILED_PROCESSING_BY_API; // Statut par défaut si l'interprétation échoue
-                $apiResponseMessage = $responseData['message'] ?? 'Réponse de FastAPI non standard ou crawl non concluant.';
-
-                if (isset($responseData['request_status']) && $responseData['request_status'] === 'completed') {
-                    if (isset($responseData['details']['total_pages_crawled_successfully']) && $responseData['details']['total_pages_crawled_successfully'] > 0) {
-                        $finalLaravelStatus = SiteStatus::COMPLETED_BY_API; // Assurez-vous que ce cas existe dans votre Enum SiteStatus
-                        $apiResponseMessage = $responseData['message'] ?? "Crawl terminé: {$responseData['details']['total_pages_crawled_successfully']} pages réussies.";
-                    } elseif (isset($responseData['details']['total_pages_crawled_successfully']) && $responseData['details']['total_pages_crawled_successfully'] === 0 && (!isset($responseData['details']['total_pages_failed']) || $responseData['details']['total_pages_failed'] === 0)) {
-                        $finalLaravelStatus = SiteStatus::COMPLETED_BY_API; // Ou un statut comme "COMPLETED_NO_PAGES"
-                        $apiResponseMessage = $responseData['message'] ?? "Crawl terminé: Aucune page traitée avec succès.";
-                    } else {
-                        // Si request_status est "completed" mais 0 succès et des échecs, ou structure inattendue
-                        $finalLaravelStatus = SiteStatus::FAILED_PROCESSING_BY_API; // Ou "COMPLETED_WITH_ERRORS"
-                        $apiResponseMessage = $responseData['message'] ?? "Crawl terminé par FastAPI mais avec des problèmes ou 0 pages utiles.";
-                    }
-                } else {
-                    // Si request_status n'est pas 'completed' ou est absent, mais que la requête HTTP était 2xx
-                    Log::warning("Site ID {$site->id} - Réponse HTTP 2xx de FastAPI, mais statut de la requête FastAPI non 'completed'.", $responseData);
-                    // Garder FAILED_PROCESSING_BY_API ou un statut intermédiaire comme SUBMITTED_TO_API si c'est une réponse d'acceptation de tâche
-                    // Dans votre cas, FastAPI est synchrone, donc on s'attend à 'completed'.
+                return ['success' => true, 'message' => $receivedData['message'] ?? 'Commande acceptée.', 'fastapi_raw_response' => $rawResponse];
+            } else {
+                $responseMessage = 'Réponse inattendue ou erreur de FastAPI après envoi commande WebSocket.';
+                if($receivedData && isset($receivedData['type']) && $receivedData['type'] === 'error') {
+                    $responseMessage = $receivedData['message'] ?? $responseMessage;
                 }
-
-                $site->fill([
-                    'status_api' => $finalLaravelStatus, // Utilisez le bon Enum
-                    'fastapi_job_id' => $site->fastapi_job_id, // Conserver l'ancien ID si pas de nouveau, ou null
-                    'last_sent_to_api_at' => now(), // Marque la fin de cette interaction
-                    'last_api_response' => Str::limit("FastAPI: {$apiResponseMessage} | Détails: " . json_encode($responseData['details'] ?? ($responseData ?? [])), 1000),
-                ])->save();
-
-                Log::info("Site ID {$site->id} envoyé avec succès à FastAPI.", ['response' => $responseData]);
-                return true;
-            } else { // Réponse HTTP non-2xx (4xx, 5xx)
-                $errorDetail = $response->json()['detail'] ?? $response->body(); // Tenter de parser JSON pour 'detail'
-                $site->fill([
-                    'status_api' => SiteStatus::FAILED_API_SUBMISSION,
-                    'last_api_response' => "Échec soumission FastAPI ({$response->status()}): " . Str::limit($errorDetail, 250),
-                ])->save();
-                Log::error("Échec de l'envoi du site ID {$site->id} à FastAPI (HTTP {$response->status()}).", [
-                    'form_data_sent' => $formData,
-                    'response_body' => $response->body()
-                ]);
-                return false;
+                Log::warning("FastApiService (WebSocket): Réponse non-ACK pour Site ID {$site->id}: " . $rawResponse);
+                $site->status_api = SiteStatus::FAILED_API_SUBMISSION;
+                $site->last_api_response = Str::limit($responseMessage . " Raw: " . $rawResponse, 500);
+                $site->saveQuietly();
+                $defaultResponse['message'] = $responseMessage;
             }
-        } catch (Throwable $e) { // Timeout de connexion, erreur DNS, etc.
-            $site->fill([
-                'status_api' => SiteStatus::FAILED_API_SUBMISSION,
-                'last_api_response' => 'Exception communication API: ' . $e->getMessage(),
-            ])->save();
-            Log::critical("Exception lors de l'envoi du site ID {$site->id} à FastAPI.", [
-                'error' => $e->getMessage(),
-                'trace' => Str::limit($e->getTraceAsString(), 1000)
-            ]);
-            return false;
-        }
+            $defaultResponse['fastapi_raw_response'] = $rawResponse;
+            return $defaultResponse;
+
+        } catch (ConnectionException $e) { /* ... (log et return $defaultResponse) ... */ }
+        catch (Throwable $e) { /* ... (log et return $defaultResponse) ... */ }
+        finally { $client?->close(); }
     }
 }

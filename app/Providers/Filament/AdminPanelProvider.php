@@ -17,11 +17,25 @@ use Illuminate\Foundation\Http\Middleware\VerifyCsrfToken;
 use Illuminate\Routing\Middleware\SubstituteBindings;
 use Illuminate\Session\Middleware\StartSession;
 use Illuminate\View\Middleware\ShareErrorsFromSession;
+use Illuminate\Support\Facades\Vite;
+use Filament\Support\Assets\Js;
+use Filament\Support\Assets\Css;
+use Filament\Support\Facades\FilamentAsset;
+
 
 class AdminPanelProvider extends PanelProvider
 {
     public function panel(Panel $panel): Panel
     {
+        FilamentAsset::register([
+            // Indiquer que c'est un module JavaScript
+            Js::make('custom-panel-app-js', Vite::asset('resources/js/app.js'))
+                ->module(), // <--- AJOUTER CECI
+
+            // Pour le CSS, pas besoin de type module
+            Css::make('custom-panel-app-css', Vite::asset('resources/css/app.css')),
+        ], 'app'); // Enregistrer dans le package 'app'
+
         return $panel
             ->default()
             ->id('admin')
@@ -44,7 +58,7 @@ class AdminPanelProvider extends PanelProvider
                 EncryptCookies::class,
                 AddQueuedCookiesToResponse::class,
                 StartSession::class,
-                AuthenticateSession::class,
+                AuthenticateSession::class, // Corrigé ici aussi
                 ShareErrorsFromSession::class,
                 VerifyCsrfToken::class,
                 SubstituteBindings::class,
@@ -53,6 +67,8 @@ class AdminPanelProvider extends PanelProvider
             ])
             ->authMiddleware([
                 Authenticate::class,
-            ]);
+            ])
+            // ->broadcasting() // Décommentez ceci si vous avez configuré Reverb/Pusher et que vous voulez utiliser les notifications en temps réel de Filament
+            ;
     }
 }

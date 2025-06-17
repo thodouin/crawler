@@ -1,31 +1,29 @@
 <?php
+
 namespace App\Models;
 
 use App\Enums\SiteStatus;
+use App\Enums\SitePriority;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-class Site extends Model {
-
+class Site extends Model 
+{
     use HasFactory;
 
     protected $fillable = [
-        'url', 
-        'status_api', 
-        'fastapi_job_id', 
-        'last_sent_to_api_at', 
-        'last_api_response',
-        'user_id',
+        'url', 'crawler_worker_id', 'status_api', 'priority',
+        'fastapi_job_id', 'last_sent_to_api_at', 'last_api_response',
     ];
-
     protected $casts = [
-        'status_api' => SiteStatus::class, 
-        'last_sent_to_api_at' => 'datetime'
+        'status_api' => SiteStatus::class,
+        'priority' => SitePriority::class,
+        'last_sent_to_api_at' => 'datetime',
     ];
-    // Plus de relation crawlVersion() ici
-
-    public function user(): BelongsTo
+    // Relation vers le CrawlerWorker assigné
+    public function crawlerWorker(): BelongsTo 
     {
-        return $this->belongsTo(User::class); // Assurez-vous que User::class pointe vers votre modèle utilisateur
+        return $this->belongsTo(CrawlerWorker::class);
     }
 }

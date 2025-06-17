@@ -11,14 +11,12 @@ class CreateSite extends CreateRecord
 {
     protected static string $resource = SiteResource::class;
 
+    public ?string $maxContentWidth = 'full';
+
     protected function mutateFormDataBeforeCreate(array $data): array
     {
         // Associer automatiquement le site à l'utilisateur connecté lors de la création
         $data['user_id'] = Auth::id();
- 
-        if (!isset($data['status_api'])) {
-            $data['status_api'] = \App\Enums\SiteStatus::PENDING_SUBMISSION; // Utilisez votre Enum correct
-        }
 
         return $data;
     }
