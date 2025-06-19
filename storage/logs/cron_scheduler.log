@@ -41082,3 +41082,30 @@ PHP Fatal error:  Could not check compatibility between App\Filament\Resources\C
 
   2025-06-19 14:18:01 Running [assign_pending_sites_to_servers] . 20.78ms DONE
 
+
+  2025-06-19 14:19:00 Running [assign_pending_sites_to_servers] . 24.22ms DONE
+
+
+  2025-06-19 14:20:01 Running [assign_pending_sites_to_servers] . 27.33ms DONE
+
+
+  2025-06-19 14:21:01 Running [assign_pending_sites_to_servers] . 21.10ms DONE
+
+
+  2025-06-19 14:22:01 Running [assign_pending_sites_to_servers] . 21.92ms DONE
+
+
+  2025-06-19 14:23:00 Running [assign_pending_sites_to_servers] . 20.69ms DONE
+
+
+  2025-06-19 14:24:01 Running [assign_pending_sites_to_servers] . 22.86ms DONE
+
+
+  2025-06-19 14:25:01 Running [assign_pending_sites_to_servers] . 21.25ms DONE
+
+
+  2025-06-19 14:26:01 Running [assign_pending_sites_to_servers] . 23.71ms DONE
+
+
+  2025-06-19 14:27:00 Running [assign_pending_sites_to_servers] . 12.60ms DONE
+
