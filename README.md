@@ -34,7 +34,7 @@ Mise à jour : Une fois la tâche terminée (succès ou échec), le worker notif
 Retour à l'étape 3.<br>
 
 Endpoints de l'API<br>
-L'URL de base de l'API est : http://<votre-domaine-worker>/api
+L'URL de base de l'API est : http://votre-domaine-worker/api
 
 1. Enregistrement et Mise à Jour du Worker<br>
 Cet endpoint doit être appelé au démarrage du worker. S'il existe déjà, ses informations seront mises à jour. Le worker est automatiquement mis au statut ONLINE_IDLE (En ligne, Libre).
