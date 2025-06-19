@@ -25,18 +25,18 @@ Laravel is accessible, powerful, and provides tools required for large, robust a
 
 Ce document décrit les endpoints de l'API que les applications "worker" (clients) doivent utiliser pour s'enregistrer, signaler leur état et récupérer des tâches à exécuter. Le système est basé sur un modèle "pull" : le worker demande activement du travail quand il est disponible.
 
-Flux de Vie d'un Worker
-Démarrage : Le worker s'enregistre auprès de l'API.
-Activité : Le worker envoie des "heartbeats" (signaux de vie) périodiquement pour indiquer qu'il est toujours en ligne.
-Recherche de Tâche : Quand le worker est libre, il appelle l'API pour demander une nouvelle tâche.
-Exécution : Le worker exécute la tâche reçue.
-Mise à jour : Une fois la tâche terminée (succès ou échec), le worker notifie l'API du résultat.
-Retour à l'étape 3.
+Flux de Vie d'un Worker<br>
+Démarrage : Le worker s'enregistre auprès de l'API.<br>
+Activité : Le worker envoie des "heartbeats" (signaux de vie) périodiquement pour indiquer qu'il est toujours en ligne.<br>
+Recherche de Tâche : Quand le worker est libre, il appelle l'API pour demander une nouvelle tâche.<br>
+Exécution : Le worker exécute la tâche reçue.<br>
+Mise à jour : Une fois la tâche terminée (succès ou échec), le worker notifie l'API du résultat.<br>
+Retour à l'étape 3.<br>
 
-Endpoints de l'API
+Endpoints de l'API<br>
 L'URL de base de l'API est : http://<votre-domaine-worker>/api
 
-1. Enregistrement et Mise à Jour du Worker
+1. Enregistrement et Mise à Jour du Worker<br>
 Cet endpoint doit être appelé au démarrage du worker. S'il existe déjà, ses informations seront mises à jour. Le worker est automatiquement mis au statut ONLINE_IDLE (En ligne, Libre).
 Endpoint : POST /worker/register
 Description : Enregistre un nouveau worker ou met à jour un worker existant en se basant sur son worker_identifier.
@@ -70,7 +70,7 @@ Réponse reçue (200/201 OK - JSON)
   "laravel_worker_id": 12
 }
 ~~~~
-
+<br>
 2. Signal de Vie (Heartbeat)<br>
 
 Le worker doit appeler cet endpoint périodiquement (ex: toutes les 30 secondes) pour signaler qu'il est toujours actif.
@@ -96,7 +96,7 @@ Réponse reçue (200 OK - JSON)
   "message": "Heartbeat reçu"
 }
 ~~~
-
+<br>
 3. Récupération d'une Tâche<br>
 
 Quand le worker est libre (ONLINE_IDLE), il doit appeler cet endpoint pour demander du travail. L'API lui renverra la tâche la plus prioritaire qui lui est assignée.
