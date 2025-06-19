@@ -136,11 +136,13 @@ Si une tâche est trouvée :
 }
 ~~~
 
-Champ	Type	Description
-id	integer	L'ID du site à traiter dans la base de données Laravel. À renvoyer lors de la mise à jour de la tâche.
-url	string	L'URL cible de la tâche.
-priority	string	La priorité du site (urgent, normal, low).
-task_type	string	Le slug de la tâche à exécuter (crawl, check_existence, etc.). Le worker doit l'utiliser pour savoir quelle logique exécuter.
+| Champ     | Type    | Description                                                                                             |
+| :-------- | :------ | :------------------------------------------------------------------------------------------------------ |
+| `id`      | `integer` | L'ID du site à traiter dans la base de données Laravel. À renvoyer lors de la mise à jour de la tâche. |
+| `url`     | `string`  | L'URL cible de la tâche.                                                                                |
+| `priority`| `string`  | La priorité du site (`urgent`, `normal`, `low`).                                                      |
+| `task_type`| `string`  | Le slug de la tâche à exécuter (`crawl`, `check_existence`, etc.). Le worker doit l'utiliser pour savoir quelle logique exécuter. |
+
 <br>
 Si aucune tâche n'est trouvée :
 

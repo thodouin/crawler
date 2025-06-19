@@ -41133,3 +41133,6 @@ PHP Fatal error:  Could not check compatibility between App\Filament\Resources\C
 
   2025-06-19 14:35:00 Running [assign_pending_sites_to_servers] . 26.89ms DONE
 
+
+  2025-06-19 14:36:01 Running [assign_pending_sites_to_servers] . 23.69ms DONE
+
