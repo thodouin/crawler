@@ -77,9 +77,9 @@ Réponse reçue (200/201 OK - JSON)
 <br><br>
 **2. Signal de Vie (Heartbeat)**<br>
 
-Le worker doit appeler cet endpoint périodiquement (ex: toutes les 30 secondes) pour signaler qu'il est toujours actif.
-Endpoint : POST /worker/heartbeat
-Description : Met à jour le champ last_heartbeat_at du worker. Si le worker était marqué OFFLINE, il est remis en ONLINE_IDLE.
+Le worker doit appeler cet endpoint périodiquement (ex: toutes les 30 secondes) pour signaler qu'il est toujours actif.<br>
+Endpoint : POST /worker/heartbeat<br>
+Description : Met à jour le champ last_heartbeat_at du worker. Si le worker était marqué OFFLINE, il est remis en ONLINE_IDLE.<br>
 
 ~~~
 {
@@ -105,11 +105,12 @@ Réponse reçue (200 OK - JSON)
 }
 ~~~
 <br>
-3. Récupération d'une Tâche<br>
 
-Quand le worker est libre (ONLINE_IDLE), il doit appeler cet endpoint pour demander du travail. L'API lui renverra la tâche la plus prioritaire qui lui est assignée.
-Endpoint : GET /v1/worker/get-task
-Description : Endpoint unique et dynamique pour récupérer n'importe quel type de tâche disponible.
+**3. Récupération d'une Tâche**<br>
+
+Quand le worker est libre (ONLINE_IDLE), il doit appeler cet endpoint pour demander du travail. L'API lui renverra la tâche la plus prioritaire qui lui est assignée.<br><br>
+Endpoint : GET /v1/worker/get-task<br>
+Description : Endpoint unique et dynamique pour récupérer n'importe quel type de tâche disponible.<br>
 Données envoyées (JSON dans le corps de la requête GET)
 
 ~~~
