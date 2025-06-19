@@ -40101,3 +40101,933 @@ PHP Fatal error:  Could not check compatibility between App\Filament\Resources\C
 
   2025-06-19 08:17:00 Running [assign_pending_sites_to_servers] . 20.33ms DONE
 
+
+  2025-06-19 08:18:01 Running [assign_pending_sites_to_servers] . 34.15ms DONE
+
+
+  2025-06-19 08:19:01 Running [assign_pending_sites_to_servers] . 20.98ms DONE
+
+
+  2025-06-19 08:20:01 Running [assign_pending_sites_to_servers] . 24.13ms DONE
+
+
+  2025-06-19 08:21:00 Running [assign_pending_sites_to_servers] . 22.01ms DONE
+
+
+  2025-06-19 08:22:01 Running [assign_pending_sites_to_servers] . 20.56ms DONE
+
+
+  2025-06-19 08:23:01 Running [assign_pending_sites_to_servers] . 21.60ms DONE
+
+
+  2025-06-19 08:24:01 Running [assign_pending_sites_to_servers] . 21.92ms DONE
+
+
+  2025-06-19 08:25:00 Running [assign_pending_sites_to_servers] . 19.84ms DONE
+
+
+  2025-06-19 08:26:01 Running [assign_pending_sites_to_servers] . 22.06ms DONE
+
+
+  2025-06-19 08:27:01 Running [assign_pending_sites_to_servers] . 20.09ms DONE
+
+
+  2025-06-19 08:28:00 Running [assign_pending_sites_to_servers] . 13.95ms DONE
+
+
+  2025-06-19 08:29:01 Running [assign_pending_sites_to_servers] . 23.42ms DONE
+
+
+  2025-06-19 08:30:01 Running [assign_pending_sites_to_servers] . 20.45ms DONE
+
+
+  2025-06-19 08:31:01 Running [assign_pending_sites_to_servers] . 21.91ms DONE
+
+
+  2025-06-19 08:32:00 Running [assign_pending_sites_to_servers] . 12.80ms DONE
+
+
+  2025-06-19 08:33:01 Running [assign_pending_sites_to_servers] . 21.10ms DONE
+
+
+  2025-06-19 08:34:01 Running [assign_pending_sites_to_servers] . 21.10ms DONE
+
+
+  2025-06-19 08:35:00 Running [assign_pending_sites_to_servers] . 21.19ms DONE
+
+
+  2025-06-19 08:36:01 Running [assign_pending_sites_to_servers] . 36.35ms DONE
+
+
+  2025-06-19 08:37:01 Running [assign_pending_sites_to_servers] . 22.03ms DONE
+
+
+  2025-06-19 08:38:01 Running [assign_pending_sites_to_servers] . 21.99ms DONE
+
+
+  2025-06-19 08:39:01 Running [assign_pending_sites_to_servers] . 24.75ms DONE
+
+
+  2025-06-19 08:40:00 Running [assign_pending_sites_to_servers] . 19.85ms DONE
+
+
+  2025-06-19 08:41:01 Running [assign_pending_sites_to_servers] . 20.53ms DONE
+
+
+  2025-06-19 08:42:01 Running [assign_pending_sites_to_servers] . 23.86ms DONE
+
+
+  2025-06-19 08:43:01 Running [assign_pending_sites_to_servers] . 20.11ms DONE
+
+
+  2025-06-19 08:44:00 Running [assign_pending_sites_to_servers] . 22.89ms DONE
+
+
+  2025-06-19 08:45:00 Running [assign_pending_sites_to_servers] . 13.47ms DONE
+
+
+  2025-06-19 08:46:01 Running [assign_pending_sites_to_servers] . 21.31ms DONE
+
+
+  2025-06-19 08:47:01 Running [assign_pending_sites_to_servers] . 24.15ms DONE
+
+
+  2025-06-19 08:48:00 Running [assign_pending_sites_to_servers] . 24.35ms DONE
+
+
+  2025-06-19 08:49:01 Running [assign_pending_sites_to_servers] . 17.72ms DONE
+
+
+  2025-06-19 08:50:01 Running [assign_pending_sites_to_servers] . 29.04ms DONE
+
+
+  2025-06-19 08:51:01 Running [assign_pending_sites_to_servers] . 40.01ms DONE
+
+
+  2025-06-19 08:52:01 Running [assign_pending_sites_to_servers] . 20.63ms DONE
+
+
+  2025-06-19 08:53:01 Running [assign_pending_sites_to_servers] . 33.24ms DONE
+
+
+  2025-06-19 08:54:00 Running [assign_pending_sites_to_servers] . 37.41ms DONE
+
+
+  2025-06-19 08:56:02 Running [assign_pending_sites_to_servers] . 24.38ms DONE
+
+
+  2025-06-19 08:57:00 Running [assign_pending_sites_to_servers] . 64.99ms DONE
+
+
+  2025-06-19 08:58:01 Running [assign_pending_sites_to_servers] . 36.94ms DONE
+
+
+  2025-06-19 08:59:00 Running [assign_pending_sites_to_servers] . 21.07ms DONE
+
+
+  2025-06-19 09:00:01 Running [assign_pending_sites_to_servers] . 20.32ms DONE
+
+
+  2025-06-19 09:01:01 Running [assign_pending_sites_to_servers] . 22.29ms DONE
+
+
+  2025-06-19 09:02:01 Running [assign_pending_sites_to_servers] . 21.32ms DONE
+
+
+  2025-06-19 09:03:01 Running [assign_pending_sites_to_servers] . 33.88ms DONE
+
+
+  2025-06-19 09:04:00 Running [assign_pending_sites_to_servers] . 21.14ms DONE
+
+
+  2025-06-19 09:05:01 Running [assign_pending_sites_to_servers] . 11.20ms DONE
+
+
+  2025-06-19 09:06:01 Running [assign_pending_sites_to_servers] . 14.79ms DONE
+
+
+  2025-06-19 09:07:00 Running [assign_pending_sites_to_servers] . 13.56ms DONE
+
+
+  2025-06-19 09:08:01 Running [assign_pending_sites_to_servers] . 21.04ms DONE
+
+
+  2025-06-19 09:09:01 Running [assign_pending_sites_to_servers] . 22.12ms DONE
+
+
+  2025-06-19 09:10:00 Running [assign_pending_sites_to_servers] . 22.43ms DONE
+
+
+  2025-06-19 09:11:01 Running [assign_pending_sites_to_servers] . 24.47ms DONE
+
+
+  2025-06-19 09:12:01 Running [assign_pending_sites_to_servers] . 23.87ms DONE
+
+
+  2025-06-19 09:13:01 Running [assign_pending_sites_to_servers] . 24.98ms DONE
+
+
+  2025-06-19 09:14:01 Running [assign_pending_sites_to_servers] . 23.55ms DONE
+
+
+  2025-06-19 09:15:01 Running [assign_pending_sites_to_servers] . 22.50ms DONE
+
+
+  2025-06-19 09:16:03 Running [assign_pending_sites_to_servers] . 47.86ms DONE
+
+
+  2025-06-19 09:17:01 Running [assign_pending_sites_to_servers] . 21.35ms DONE
+
+
+  2025-06-19 09:18:00 Running [assign_pending_sites_to_servers] . 36.19ms DONE
+
+
+  2025-06-19 09:19:01 Running [assign_pending_sites_to_servers] . 20.69ms DONE
+
+
+  2025-06-19 09:20:01 Running [assign_pending_sites_to_servers] . 21.53ms DONE
+
+
+  2025-06-19 09:21:01 Running [assign_pending_sites_to_servers] . 20.31ms DONE
+
+
+  2025-06-19 09:22:00 Running [assign_pending_sites_to_servers] . 22.69ms DONE
+
+
+  2025-06-19 09:23:01 Running [assign_pending_sites_to_servers] . 22.67ms DONE
+
+
+  2025-06-19 09:24:01 Running [assign_pending_sites_to_servers] . 23.01ms DONE
+
+
+  2025-06-19 09:25:01 Running [assign_pending_sites_to_servers] . 21.43ms DONE
+
+
+  2025-06-19 09:26:00 Running [assign_pending_sites_to_servers] . 23.41ms DONE
+
+
+  2025-06-19 09:27:01 Running [assign_pending_sites_to_servers] . 26.51ms DONE
+
+
+  2025-06-19 09:28:01 Running [assign_pending_sites_to_servers] . 25.75ms DONE
+
+
+  2025-06-19 09:29:01 Running [assign_pending_sites_to_servers] . 22.76ms DONE
+
+
+  2025-06-19 09:30:01 Running [assign_pending_sites_to_servers] . 27.16ms DONE
+
+
+  2025-06-19 09:31:01 Running [assign_pending_sites_to_servers] . 24.40ms DONE
+
+
+  2025-06-19 09:32:00 Running [assign_pending_sites_to_servers] . 19.16ms DONE
+
+
+  2025-06-19 09:33:01 Running [assign_pending_sites_to_servers] . 23.14ms DONE
+
+
+  2025-06-19 09:34:01 Running [assign_pending_sites_to_servers] . 26.71ms DONE
+
+
+  2025-06-19 09:35:01 Running [assign_pending_sites_to_servers] . 20.54ms DONE
+
+
+  2025-06-19 09:36:01 Running [assign_pending_sites_to_servers] . 29.25ms DONE
+
+
+  2025-06-19 09:37:00 Running [assign_pending_sites_to_servers] . 20.47ms DONE
+
+
+  2025-06-19 09:38:01 Running [assign_pending_sites_to_servers] . 26.17ms DONE
+
+
+  2025-06-19 09:39:01 Running [assign_pending_sites_to_servers] . 21.30ms DONE
+
+
+  2025-06-19 09:40:01 Running [assign_pending_sites_to_servers] . 21.75ms DONE
+
+
+  2025-06-19 09:41:01 Running [assign_pending_sites_to_servers] . 32.81ms DONE
+
+
+  2025-06-19 09:42:01 Running [assign_pending_sites_to_servers] . 20.78ms DONE
+
+
+  2025-06-19 09:43:00 Running [assign_pending_sites_to_servers] . 22.09ms DONE
+
+
+  2025-06-19 09:44:01 Running [assign_pending_sites_to_servers] . 24.45ms DONE
+
+
+  2025-06-19 09:45:01 Running [assign_pending_sites_to_servers] . 25.72ms DONE
+
+
+  2025-06-19 09:46:01 Running [assign_pending_sites_to_servers] . 24.17ms DONE
+
+
+  2025-06-19 09:47:01 Running [assign_pending_sites_to_servers] . 23.33ms DONE
+
+
+  2025-06-19 09:48:00 Running [assign_pending_sites_to_servers] . 20.31ms DONE
+
+
+  2025-06-19 09:49:01 Running [assign_pending_sites_to_servers] . 21.03ms DONE
+
+
+  2025-06-19 09:50:01 Running [assign_pending_sites_to_servers] . 23.93ms DONE
+
+
+  2025-06-19 09:51:01 Running [assign_pending_sites_to_servers] . 27.96ms DONE
+
+
+  2025-06-19 09:52:01 Running [assign_pending_sites_to_servers] . 21.88ms DONE
+
+
+  2025-06-19 09:53:00 Running [assign_pending_sites_to_servers] . 29.53ms DONE
+
+
+  2025-06-19 09:54:00 Running [assign_pending_sites_to_servers] . 21.57ms DONE
+
+
+  2025-06-19 09:55:01 Running [assign_pending_sites_to_servers] . 21.56ms DONE
+
+
+  2025-06-19 09:56:01 Running [assign_pending_sites_to_servers] . 21.76ms DONE
+
+
+  2025-06-19 09:57:01 Running [assign_pending_sites_to_servers] . 26.29ms DONE
+
+
+  2025-06-19 09:58:00 Running [assign_pending_sites_to_servers] . 21.78ms DONE
+
+
+  2025-06-19 09:59:01 Running [assign_pending_sites_to_servers] . 22.39ms DONE
+
+
+  2025-06-19 10:00:01 Running [assign_pending_sites_to_servers] . 13.46ms DONE
+
+
+  2025-06-19 10:01:00 Running [assign_pending_sites_to_servers] . 14.02ms DONE
+
+
+  2025-06-19 10:02:01 Running [assign_pending_sites_to_servers] . 51.95ms DONE
+
+
+  2025-06-19 10:03:01 Running [assign_pending_sites_to_servers] . 20.04ms DONE
+
+
+  2025-06-19 10:04:01 Running [assign_pending_sites_to_servers] . 13.63ms DONE
+
+
+  2025-06-19 10:05:00 Running [assign_pending_sites_to_servers] . 24.09ms DONE
+
+
+  2025-06-19 10:06:01 Running [assign_pending_sites_to_servers] . 21.08ms DONE
+
+
+  2025-06-19 10:07:00 Running [assign_pending_sites_to_servers] . 13.20ms DONE
+
+
+  2025-06-19 10:08:00 Running [assign_pending_sites_to_servers] . 13.51ms DONE
+
+
+  2025-06-19 10:09:01 Running [assign_pending_sites_to_servers] . 26.14ms DONE
+
+
+  2025-06-19 10:10:01 Running [assign_pending_sites_to_servers] . 25.43ms DONE
+
+
+  2025-06-19 10:11:00 Running [assign_pending_sites_to_servers] . 29.04ms DONE
+
+
+  2025-06-19 10:12:00 Running [assign_pending_sites_to_servers] . 25.50ms DONE
+
+
+  2025-06-19 10:13:01 Running [assign_pending_sites_to_servers] . 28.97ms DONE
+
+
+  2025-06-19 10:14:01 Running [assign_pending_sites_to_servers] . 24.21ms DONE
+
+
+  2025-06-19 10:15:01 Running [assign_pending_sites_to_servers] . 26.12ms DONE
+
+
+  2025-06-19 10:16:00 Running [assign_pending_sites_to_servers] . 26.09ms DONE
+
+
+  2025-06-19 10:17:01 Running [assign_pending_sites_to_servers] . 22.58ms DONE
+
+
+  2025-06-19 10:18:01 Running [assign_pending_sites_to_servers] . 20.40ms DONE
+
+
+  2025-06-19 10:19:01 Running [assign_pending_sites_to_servers] . 23.44ms DONE
+
+
+  2025-06-19 10:20:00 Running [assign_pending_sites_to_servers] . 19.37ms DONE
+
+
+  2025-06-19 10:21:00 Running [assign_pending_sites_to_servers] . 20.64ms DONE
+
+
+  2025-06-19 10:22:01 Running [assign_pending_sites_to_servers] . 24.39ms DONE
+
+
+  2025-06-19 10:23:01 Running [assign_pending_sites_to_servers] . 30.94ms DONE
+
+
+  2025-06-19 10:24:01 Running [assign_pending_sites_to_servers] . 25.00ms DONE
+
+
+  2025-06-19 10:25:01 Running [assign_pending_sites_to_servers] . 21.50ms DONE
+
+
+  2025-06-19 10:26:00 Running [assign_pending_sites_to_servers] . 20.57ms DONE
+
+
+  2025-06-19 10:27:01 Running [assign_pending_sites_to_servers] . 25.66ms DONE
+
+
+  2025-06-19 10:28:01 Running [assign_pending_sites_to_servers] . 30.89ms DONE
+
+
+  2025-06-19 10:29:01 Running [assign_pending_sites_to_servers] . 26.11ms DONE
+
+
+  2025-06-19 10:30:01 Running [assign_pending_sites_to_servers] . 25.64ms DONE
+
+
+  2025-06-19 10:31:01 Running [assign_pending_sites_to_servers] . 22.93ms DONE
+
+
+  2025-06-19 10:32:01 Running [assign_pending_sites_to_servers] . 23.66ms DONE
+
+
+  2025-06-19 10:33:00 Running [assign_pending_sites_to_servers] . 22.24ms DONE
+
+
+  2025-06-19 10:34:01 Running [assign_pending_sites_to_servers] . 19.80ms DONE
+
+
+  2025-06-19 10:35:01 Running [assign_pending_sites_to_servers] . 25.32ms DONE
+
+
+  2025-06-19 10:36:01 Running [assign_pending_sites_to_servers] . 20.75ms DONE
+
+
+  2025-06-19 10:37:01 Running [assign_pending_sites_to_servers] . 22.25ms DONE
+
+
+  2025-06-19 10:38:00 Running [assign_pending_sites_to_servers] . 24.16ms DONE
+
+
+  2025-06-19 10:39:01 Running [assign_pending_sites_to_servers] . 21.46ms DONE
+
+
+  2025-06-19 10:40:01 Running [assign_pending_sites_to_servers] . 21.68ms DONE
+
+
+  2025-06-19 10:41:01 Running [assign_pending_sites_to_servers] . 23.36ms DONE
+
+
+  2025-06-19 10:42:01 Running [assign_pending_sites_to_servers] . 13.85ms DONE
+
+
+  2025-06-19 10:43:00 Running [assign_pending_sites_to_servers] . 23.51ms DONE
+
+
+  2025-06-19 10:44:01 Running [assign_pending_sites_to_servers] . 24.34ms DONE
+
+
+  2025-06-19 10:45:01 Running [assign_pending_sites_to_servers] . 25.12ms DONE
+
+
+  2025-06-19 10:46:01 Running [assign_pending_sites_to_servers] . 18.47ms DONE
+
+
+  2025-06-19 10:47:00 Running [assign_pending_sites_to_servers] . 15.08ms DONE
+
+
+  2025-06-19 10:48:01 Running [assign_pending_sites_to_servers] . 29.50ms DONE
+
+
+  2025-06-19 10:49:01 Running [assign_pending_sites_to_servers] . 31.39ms DONE
+
+
+  2025-06-19 10:50:01 Running [assign_pending_sites_to_servers] . 24.15ms DONE
+
+
+  2025-06-19 10:51:01 Running [assign_pending_sites_to_servers] . 27.07ms DONE
+
+
+  2025-06-19 10:52:00 Running [assign_pending_sites_to_servers] . 23.72ms DONE
+
+
+  2025-06-19 10:53:01 Running [assign_pending_sites_to_servers] . 32.64ms DONE
+
+
+  2025-06-19 10:54:01 Running [assign_pending_sites_to_servers] . 20.85ms DONE
+
+
+  2025-06-19 10:55:01 Running [assign_pending_sites_to_servers] . 21.77ms DONE
+
+
+  2025-06-19 10:56:01 Running [assign_pending_sites_to_servers] . 24.19ms DONE
+
+
+  2025-06-19 10:57:01 Running [assign_pending_sites_to_servers] . 30.62ms DONE
+
+
+  2025-06-19 10:58:01 Running [assign_pending_sites_to_servers] . 22.07ms DONE
+
+
+  2025-06-19 10:59:01 Running [assign_pending_sites_to_servers] . 23.56ms DONE
+
+
+  2025-06-19 11:00:00 Running [assign_pending_sites_to_servers] . 25.95ms DONE
+
+
+  2025-06-19 11:01:01 Running [assign_pending_sites_to_servers] . 22.40ms DONE
+
+
+  2025-06-19 11:02:01 Running [assign_pending_sites_to_servers] . 24.27ms DONE
+
+
+  2025-06-19 11:03:01 Running [assign_pending_sites_to_servers] . 22.51ms DONE
+
+
+  2025-06-19 11:04:01 Running [assign_pending_sites_to_servers] . 21.86ms DONE
+
+
+  2025-06-19 11:05:01 Running [assign_pending_sites_to_servers] . 23.76ms DONE
+
+
+  2025-06-19 11:06:00 Running [assign_pending_sites_to_servers] . 41.04ms DONE
+
+
+  2025-06-19 11:07:01 Running [assign_pending_sites_to_servers] . 22.96ms DONE
+
+
+  2025-06-19 11:08:01 Running [assign_pending_sites_to_servers] . 21.00ms DONE
+
+
+  2025-06-19 11:09:01 Running [assign_pending_sites_to_servers] . 20.24ms DONE
+
+
+  2025-06-19 11:10:01 Running [assign_pending_sites_to_servers] . 24.71ms DONE
+
+
+  2025-06-19 11:11:00 Running [assign_pending_sites_to_servers] . 21.17ms DONE
+
+
+  2025-06-19 11:29:02 Running [assign_pending_sites_to_servers] . 26.67ms DONE
+
+
+  2025-06-19 11:30:00 Running [assign_pending_sites_to_servers] . 20.91ms DONE
+
+
+  2025-06-19 11:47:01 Running [assign_pending_sites_to_servers] . 27.77ms DONE
+
+
+  2025-06-19 11:48:01 Running [assign_pending_sites_to_servers] . 26.70ms DONE
+
+
+  2025-06-19 11:49:01 Running [assign_pending_sites_to_servers] . 28.21ms DONE
+
+
+  2025-06-19 11:50:02 Running [assign_pending_sites_to_servers] . 34.75ms DONE
+
+
+  2025-06-19 11:51:00 Running [assign_pending_sites_to_servers] . 24.27ms DONE
+
+
+  2025-06-19 11:52:02 Running [assign_pending_sites_to_servers] . 29.99ms DONE
+
+
+  2025-06-19 11:53:00 Running [assign_pending_sites_to_servers] . 24.57ms DONE
+
+
+  2025-06-19 11:54:02 Running [assign_pending_sites_to_servers] . 28.08ms DONE
+
+
+  2025-06-19 11:55:01 Running [assign_pending_sites_to_servers] . 38.97ms DONE
+
+
+  2025-06-19 11:56:00 Running [assign_pending_sites_to_servers] . 25.24ms DONE
+
+
+  2025-06-19 11:57:01 Running [assign_pending_sites_to_servers] . 22.69ms DONE
+
+
+  2025-06-19 11:58:01 Running [assign_pending_sites_to_servers] . 23.39ms DONE
+
+
+  2025-06-19 11:59:01 Running [assign_pending_sites_to_servers] . 13.68ms DONE
+
+
+  2025-06-19 12:00:00 Running [assign_pending_sites_to_servers] . 20.19ms DONE
+
+
+  2025-06-19 12:01:01 Running [assign_pending_sites_to_servers] . 22.76ms DONE
+
+
+  2025-06-19 12:02:01 Running [assign_pending_sites_to_servers] . 20.60ms DONE
+
+
+  2025-06-19 12:03:01 Running [assign_pending_sites_to_servers] . 21.72ms DONE
+
+
+  2025-06-19 12:04:00 Running [assign_pending_sites_to_servers] . 24.74ms DONE
+
+
+  2025-06-19 12:05:01 Running [assign_pending_sites_to_servers] . 20.99ms DONE
+
+
+  2025-06-19 12:06:01 Running [assign_pending_sites_to_servers] . 33.17ms DONE
+
+
+  2025-06-19 12:07:01 Running [assign_pending_sites_to_servers] . 19.74ms DONE
+
+
+  2025-06-19 12:08:01 Running [assign_pending_sites_to_servers] . 22.44ms DONE
+
+
+  2025-06-19 12:09:01 Running [assign_pending_sites_to_servers] . 31.38ms DONE
+
+
+  2025-06-19 12:10:01 Running [assign_pending_sites_to_servers] . 24.39ms DONE
+
+
+  2025-06-19 12:11:01 Running [assign_pending_sites_to_servers] . 21.39ms DONE
+
+
+  2025-06-19 12:12:01 Running [assign_pending_sites_to_servers] . 25.94ms DONE
+
+
+  2025-06-19 12:13:00 Running [assign_pending_sites_to_servers] . 23.99ms DONE
+
+
+  2025-06-19 12:14:01 Running [assign_pending_sites_to_servers] . 26.13ms DONE
+
+
+  2025-06-19 12:15:01 Running [assign_pending_sites_to_servers] . 23.35ms DONE
+
+
+  2025-06-19 12:16:01 Running [assign_pending_sites_to_servers] . 21.59ms DONE
+
+
+  2025-06-19 12:17:01 Running [assign_pending_sites_to_servers] . 20.56ms DONE
+
+
+  2025-06-19 12:18:00 Running [assign_pending_sites_to_servers] . 22.80ms DONE
+
+
+  2025-06-19 12:19:00 Running [assign_pending_sites_to_servers] . 21.20ms DONE
+
+
+  2025-06-19 12:20:01 Running [assign_pending_sites_to_servers] . 22.14ms DONE
+
+
+  2025-06-19 12:21:01 Running [assign_pending_sites_to_servers] . 21.85ms DONE
+
+
+  2025-06-19 12:22:00 Running [assign_pending_sites_to_servers] . 22.41ms DONE
+
+
+  2025-06-19 12:23:01 Running [assign_pending_sites_to_servers] . 24.33ms DONE
+
+
+  2025-06-19 12:24:01 Running [assign_pending_sites_to_servers] . 26.98ms DONE
+
+
+  2025-06-19 12:25:01 Running [assign_pending_sites_to_servers] . 23.45ms DONE
+
+
+  2025-06-19 12:26:01 Running [assign_pending_sites_to_servers] . 31.42ms DONE
+
+
+  2025-06-19 12:27:01 Running [assign_pending_sites_to_servers] . 27.08ms DONE
+
+
+  2025-06-19 12:28:01 Running [assign_pending_sites_to_servers] . 21.97ms DONE
+
+
+  2025-06-19 12:29:00 Running [assign_pending_sites_to_servers] . 24.79ms DONE
+
+
+  2025-06-19 12:30:01 Running [assign_pending_sites_to_servers] . 24.31ms DONE
+
+
+  2025-06-19 12:31:01 Running [assign_pending_sites_to_servers] . 24.54ms DONE
+
+
+  2025-06-19 12:32:01 Running [assign_pending_sites_to_servers] . 22.49ms DONE
+
+
+  2025-06-19 12:33:01 Running [assign_pending_sites_to_servers] . 21.64ms DONE
+
+
+  2025-06-19 12:34:00 Running [assign_pending_sites_to_servers] . 25.82ms DONE
+
+
+  2025-06-19 12:35:01 Running [assign_pending_sites_to_servers] . 22.14ms DONE
+
+
+  2025-06-19 12:36:01 Running [assign_pending_sites_to_servers] . 23.56ms DONE
+
+
+  2025-06-19 12:37:00 Running [assign_pending_sites_to_servers] . 13.73ms DONE
+
+
+  2025-06-19 12:38:01 Running [assign_pending_sites_to_servers] . 14.11ms DONE
+
+
+  2025-06-19 12:39:01 Running [assign_pending_sites_to_servers] . 21.02ms DONE
+
+
+  2025-06-19 12:40:01 Running [assign_pending_sites_to_servers] . 28.64ms DONE
+
+
+  2025-06-19 12:41:00 Running [assign_pending_sites_to_servers] . 23.13ms DONE
+
+
+  2025-06-19 12:42:01 Running [assign_pending_sites_to_servers] . 16.32ms DONE
+
+
+  2025-06-19 12:43:01 Running [assign_pending_sites_to_servers] . 29.08ms DONE
+
+
+  2025-06-19 12:44:01 Running [assign_pending_sites_to_servers] . 24.06ms DONE
+
+
+  2025-06-19 12:45:00 Running [assign_pending_sites_to_servers] . 23.57ms DONE
+
+
+  2025-06-19 12:46:01 Running [assign_pending_sites_to_servers] . 20.10ms DONE
+
+
+  2025-06-19 12:47:01 Running [assign_pending_sites_to_servers] . 23.52ms DONE
+
+
+  2025-06-19 12:48:01 Running [assign_pending_sites_to_servers] . 24.10ms DONE
+
+
+  2025-06-19 12:49:00 Running [assign_pending_sites_to_servers] . 22.05ms DONE
+
+
+  2025-06-19 12:50:00 Running [assign_pending_sites_to_servers] . 14.52ms DONE
+
+
+  2025-06-19 12:51:01 Running [assign_pending_sites_to_servers] . 22.20ms DONE
+
+
+  2025-06-19 12:52:00 Running [assign_pending_sites_to_servers] . 13.61ms DONE
+
+
+  2025-06-19 12:53:01 Running [assign_pending_sites_to_servers] . 14.83ms DONE
+
+
+  2025-06-19 12:54:00 Running [assign_pending_sites_to_servers] . 13.89ms DONE
+
+
+  2025-06-19 12:55:01 Running [assign_pending_sites_to_servers] . 29.20ms DONE
+
+
+  2025-06-19 12:56:01 Running [assign_pending_sites_to_servers] . 15.57ms DONE
+
+
+  2025-06-19 12:57:00 Running [assign_pending_sites_to_servers] . 16.36ms DONE
+
+
+  2025-06-19 12:58:01 Running [assign_pending_sites_to_servers] . 28.30ms DONE
+
+
+  2025-06-19 12:59:01 Running [assign_pending_sites_to_servers] . 15.30ms DONE
+
+
+  2025-06-19 13:00:00 Running [assign_pending_sites_to_servers] . 15.81ms DONE
+
+
+  2025-06-19 13:01:01 Running [assign_pending_sites_to_servers] . 17.01ms DONE
+
+
+  2025-06-19 13:02:00 Running [assign_pending_sites_to_servers] . 16.01ms DONE
+
+
+  2025-06-19 13:03:01 Running [assign_pending_sites_to_servers] . 25.11ms DONE
+
+
+  2025-06-19 13:04:01 Running [assign_pending_sites_to_servers] . 24.31ms DONE
+
+
+  2025-06-19 13:05:00 Running [assign_pending_sites_to_servers] . 23.84ms DONE
+
+
+  2025-06-19 13:06:01 Running [assign_pending_sites_to_servers] . 27.26ms DONE
+
+
+  2025-06-19 13:07:01 Running [assign_pending_sites_to_servers] . 24.45ms DONE
+
+
+  2025-06-19 13:08:01 Running [assign_pending_sites_to_servers] . 29.19ms DONE
+
+
+  2025-06-19 13:09:01 Running [assign_pending_sites_to_servers] . 24.69ms DONE
+
+
+  2025-06-19 13:10:00 Running [assign_pending_sites_to_servers] . 24.53ms DONE
+
+
+  2025-06-19 13:11:01 Running [assign_pending_sites_to_servers] . 24.92ms DONE
+
+
+  2025-06-19 13:12:01 Running [assign_pending_sites_to_servers] . 28.30ms DONE
+
+
+  2025-06-19 13:13:01 Running [assign_pending_sites_to_servers] . 25.08ms DONE
+
+
+  2025-06-19 13:14:01 Running [assign_pending_sites_to_servers] . 26.90ms DONE
+
+
+  2025-06-19 13:15:01 Running [assign_pending_sites_to_servers] . 24.24ms DONE
+
+
+  2025-06-19 13:16:00 Running [assign_pending_sites_to_servers] . 27.12ms DONE
+
+
+  2025-06-19 13:17:01 Running [assign_pending_sites_to_servers] . 22.98ms DONE
+
+
+  2025-06-19 13:18:01 Running [assign_pending_sites_to_servers] . 40.72ms DONE
+
+
+  2025-06-19 13:19:00 Running [assign_pending_sites_to_servers] . 38.57ms DONE
+
+
+  2025-06-19 13:20:00 Running [assign_pending_sites_to_servers] . 43.03ms DONE
+
+
+  2025-06-19 13:21:01 Running [assign_pending_sites_to_servers] . 42.21ms DONE
+
+
+  2025-06-19 13:22:01 Running [assign_pending_sites_to_servers] . 39.18ms DONE
+
+
+  2025-06-19 13:23:01 Running [assign_pending_sites_to_servers] . 38.80ms DONE
+
+
+  2025-06-19 13:24:01 Running [assign_pending_sites_to_servers] . 40.89ms DONE
+
+
+  2025-06-19 13:25:00 Running [assign_pending_sites_to_servers] . 68.18ms DONE
+
+
+  2025-06-19 13:26:00 Running [assign_pending_sites_to_servers] . 36.73ms DONE
+
+
+  2025-06-19 13:27:01 Running [assign_pending_sites_to_servers] . 35.82ms DONE
+
+
+  2025-06-19 13:28:01 Running [assign_pending_sites_to_servers] . 36.00ms DONE
+
+
+  2025-06-19 13:29:01 Running [assign_pending_sites_to_servers] . 33.40ms DONE
+
+
+  2025-06-19 13:30:00 Running [assign_pending_sites_to_servers] . 48.80ms DONE
+
+
+  2025-06-19 13:31:01 Running [assign_pending_sites_to_servers] . 33.12ms DONE
+
+
+  2025-06-19 13:32:01 Running [assign_pending_sites_to_servers] . 36.38ms DONE
+
+
+  2025-06-19 13:33:01 Running [assign_pending_sites_to_servers] . 37.49ms DONE
+
+
+  2025-06-19 13:34:00 Running [assign_pending_sites_to_servers] . 39.45ms DONE
+
+
+  2025-06-19 13:35:01 Running [assign_pending_sites_to_servers] . 21.92ms DONE
+
+
+  2025-06-19 13:36:01 Running [assign_pending_sites_to_servers] . 23.12ms DONE
+
+
+  2025-06-19 13:37:00 Running [assign_pending_sites_to_servers] . 25.98ms DONE
+
+
+  2025-06-19 13:38:01 Running [assign_pending_sites_to_servers] . 21.83ms DONE
+
+
+  2025-06-19 13:39:01 Running [assign_pending_sites_to_servers] . 43.66ms DONE
+
+
+  2025-06-19 13:40:01 Running [assign_pending_sites_to_servers] . 46.57ms DONE
+
+
+  2025-06-19 13:41:01 Running [assign_pending_sites_to_servers] . 52.41ms DONE
+
+
+  2025-06-19 13:42:01 Running [assign_pending_sites_to_servers] . 42.31ms DONE
+
+
+  2025-06-19 13:43:01 Running [assign_pending_sites_to_servers] . 37.39ms DONE
+
+
+  2025-06-19 13:44:01 Running [assign_pending_sites_to_servers] . 20.55ms DONE
+
+
+  2025-06-19 13:45:00 Running [assign_pending_sites_to_servers] . 25.42ms DONE
+
+
+  2025-06-19 13:46:01 Running [assign_pending_sites_to_servers] . 21.54ms DONE
+
+
+  2025-06-19 13:47:01 Running [assign_pending_sites_to_servers] . 20.81ms DONE
+
+
+  2025-06-19 13:48:00 Running [assign_pending_sites_to_servers] . 20.24ms DONE
+
+
+  2025-06-19 13:49:00 Running [assign_pending_sites_to_servers] . 13.69ms DONE
+
+
+  2025-06-19 13:50:01 Running [assign_pending_sites_to_servers] . 21.85ms DONE
+
+
+  2025-06-19 13:51:01 Running [assign_pending_sites_to_servers] . 24.72ms DONE
+
+
+  2025-06-19 13:52:00 Running [assign_pending_sites_to_servers] . 14.17ms DONE
+
+
+  2025-06-19 13:53:01 Running [assign_pending_sites_to_servers] . 53.91ms DONE
+
+
+  2025-06-19 13:54:01 Running [assign_pending_sites_to_servers] . 20.75ms DONE
+
+
+  2025-06-19 13:55:00 Running [assign_pending_sites_to_servers] . 22.69ms DONE
+
+
+  2025-06-19 13:56:01 Running [assign_pending_sites_to_servers] . 23.38ms DONE
+
+
+  2025-06-19 13:57:01 Running [assign_pending_sites_to_servers] . 21.64ms DONE
+
+
+  2025-06-19 13:58:01 Running [assign_pending_sites_to_servers] . 21.47ms DONE
+
+
+  2025-06-19 13:59:00 Running [assign_pending_sites_to_servers] . 22.18ms DONE
+
+
+  2025-06-19 14:00:01 Running [assign_pending_sites_to_servers] . 22.89ms DONE
+
+
+  2025-06-19 14:01:01 Running [assign_pending_sites_to_servers] . 23.12ms DONE
+
