@@ -119,6 +119,24 @@ class SiteResource extends Resource
                     ->searchable()
                     ->sortable(),
 
+                Tables\Columns\TextColumn::make('existence_status')
+                    ->label('Statut Existence')
+                    ->badge()
+                    ->color(fn (?string $state): string => match ($state) {
+                        'exists' => 'success',
+                        'not_found' => 'danger',
+                        'error' => 'warning',
+                        default => 'gray',
+                    })
+                    ->formatStateUsing(fn (?string $state): string => match ($state) {
+                        'exists' => 'Existe',
+                        'not_found' => 'Non trouvé',
+                        'error' => 'Erreur',
+                        default => 'N/A',
+                    })
+                    ->sortable()
+                    ->toggleable(),
+
                     Tables\Columns\TextColumn::make('priority')
                     ->label('Priorité')
                     ->badge()
@@ -139,13 +157,6 @@ class SiteResource extends Resource
                         return $state->getLabel(); 
                     })
                     ->sortable() // Le tri se fera sur la valeur brute en BDD ('urgent', 'normal', 'low')
-                    ->toggleable(),
-
-                Tables\Columns\TextColumn::make('user.name') // Ou 'user.email'
-                    ->label('Assigné à')
-                    ->searchable()
-                    ->sortable()
-                    ->placeholder('Non assigné')
                     ->toggleable(),
 
                 Tables\Columns\TextColumn::make('crawlerWorker.name') // AFFICHER LE NOM DU WORKER
@@ -251,15 +262,35 @@ class SiteResource extends Resource
                         ->color('success')
                         ->requiresConfirmation()
                         ->form([
+                                // NOUVEAU CHAMP POUR CHOISIR LA TÂCHE
+                            Forms\Components\Select::make('task_type')
+                                ->label('Type de Tâche')
+                                ->options([
+                                    'crawl' => 'Crawler le site complet',
+                                    'check_existence' => 'Vérifier seulement si le site existe',
+                                ])
+                                ->default('crawl')
+                                ->required(),
+
                             Forms\Components\TextInput::make('max_depth')
                                 ->numeric()->default(0)->minValue(0)
-                                ->required(fn (Forms\Get $get): bool => !$get('crawl_all_links')),
+                                ->required(fn (Forms\Get $get): bool => !$get('crawl_all_links') && $get('task_type') === 'crawl')
+                                ->visible(fn (Forms\Get $get) => $get('task_type') === 'crawl'),
+
                             Forms\Components\Checkbox::make('crawl_all_links')
-                                ->default(false)->reactive(),
+                                ->default(false)
+                                ->reactive()
+                                ->visible(fn (Forms\Get $get) => $get('task_type') === 'crawl'),
                         ])
-                        ->modalHeading('Assigner et Envoyer les sites sélectionnés à FastAPI')
+                        ->modalHeading('Assigner et Envoyer les sites sélectionnés à Électron')
                         ->action(function (EloquentCollection $records, array $data) {
-                            $maxDepthForBulk = $data['crawl_all_links'] ? -1 : (int) $data['max_depth'];
+                            $taskType = $data['task_type'];
+                
+                            // La profondeur n'est pertinente que pour le crawl
+                            $maxDepthForBulk = null;
+                            if ($taskType === 'crawl') {
+                                $maxDepthForBulk = $data['crawl_all_links'] ? -1 : (int) $data['max_depth'];
+                            }
                             
                             $jobDispatchedCount = 0;
                             $skippedCount = 0;
@@ -293,22 +324,22 @@ class SiteResource extends Resource
                                                           ->orderBy('last_heartbeat_at', 'asc') // Pour choisir le premier libre par ID
                                                           ->first();
                             
-                                    if ($availableWorker) 
-                                    {
-                                        Log::info("BulkAction: Site ID {$record->id} (Priorité: {$record->priority?->getLabel()}) assigné au Worker ID {$availableWorker->id} ({$availableWorker->name}).");
-                                        
-                                        $record->crawler_worker_id = $availableWorker->id; // Assigner crawler_worker_id
-                                        $record->status_api = SiteStatus::PENDING_SUBMISSION;
-                                        $record->last_api_response = 'En attente d\'envoi à FastAPI (assigné à: ' . $availableWorker->name . ')';
-                                        $record->save();
+                                    if ($availableWorker) {
+                                        Log::info("BulkAction: Site ID {$record->id} assigné au Worker ID {$availableWorker->id} et mis en attente de récupération.");
                                                             
+                                        $record->crawler_worker_id = $availableWorker->id;
+                                        $record->status_api = SiteStatus::PENDING_SUBMISSION;
+                                        $record->task_type = $taskType; // <-- ON SAUVEGARDE LE TYPE DE TÂCHE !
+                                        $record->last_api_response = 'Tâche (' . $taskType . ') en attente de récupération par: ' . $availableWorker->name;
+                                        $record->save();
+                                                                                
                                         if (class_exists(SiteStatusUpdated::class)) {
                                             SiteStatusUpdated::dispatch($record->fresh());
                                         }
-                                        
+                                                            
                                         $assignedCount++;
-                                        SendSiteToFastApiJob::dispatch($record, $maxDepthForBulk);
-                                        $jobDispatchedCount++;
+                                        // SendSiteToFastApiJob::dispatch($record, $maxDepthForBulk);
+                                        // $jobDispatchedCount++;
                                     } else {
                                         $putInQueueForServerCount++;
                                         $record->crawler_worker_id = null; // S'assurer qu'il n'y a pas d'ancienne assignation
@@ -329,7 +360,7 @@ class SiteResource extends Resource
                             // ... (Logique de notification) ...
                             $messages = [];
                             if ($assignedCount > 0) $messages[] = "{$assignedCount} site(s) assignés à un worker et préparés.";
-                            if ($jobDispatchedCount > 0) $messages[] = "{$jobDispatchedCount} job(s) d'envoi mis en file d'attente.";
+                            // if ($jobDispatchedCount > 0) $messages[] = "{$jobDispatchedCount} job(s) d'envoi mis en file d'attente.";
                             if ($putInQueueForServerCount > 0) $messages[] = "{$putInQueueForServerCount} site(s) mis en attente d'un worker libre.";
                             if ($skippedCount > 0) $messages[] = "{$skippedCount} site(s) ignorés.";
                             Notification::make()->title('Actions en masse initiées')->body(implode(' ', $messages))->success()->send();

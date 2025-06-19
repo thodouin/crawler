@@ -13,8 +13,9 @@ class Site extends Model
     use HasFactory;
 
     protected $fillable = [
-        'url', 'crawler_worker_id', 'status_api', 'priority',
+        'url', 'crawler_worker_id', 'status_api', 'priority', 'task_type',
         'fastapi_job_id', 'last_sent_to_api_at', 'last_api_response',
+        'existence_status', 'last_existence_check_at',
     ];
     protected $casts = [
         'status_api' => SiteStatus::class,

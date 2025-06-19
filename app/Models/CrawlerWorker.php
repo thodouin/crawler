@@ -14,13 +14,13 @@ class CrawlerWorker extends Model
     
     protected $fillable = [
         'worker_identifier', 'name', 'ip_address', 'port', 'ws_protocol',
-        'status', 'current_site_id_processing', 'last_heartbeat_at',
+        'status', 'current_site_id_processing', 'last_heartbeat_at', 'system_info',
     ];
 
     protected $casts = [
         'status' => WorkerStatus::class,
         'last_heartbeat_at' => 'datetime',
-        'port' => 'integer',
+        'system_info' => 'array',
     ];
 
     public function processingSite(): BelongsTo 
