@@ -37,9 +37,9 @@ Endpoints de l'API<br>
 L'URL de base de l'API est : http://votre-domaine-worker/api
 
 1. Enregistrement et Mise à Jour du Worker<br>
-Cet endpoint doit être appelé au démarrage du worker. S'il existe déjà, ses informations seront mises à jour. Le worker est automatiquement mis au statut ONLINE_IDLE (En ligne, Libre).
-Endpoint : POST /worker/register
-Description : Enregistre un nouveau worker ou met à jour un worker existant en se basant sur son worker_identifier.
+Cet endpoint doit être appelé au démarrage du worker. S'il existe déjà, ses informations seront mises à jour. Le worker est automatiquement mis au statut ONLINE_IDLE (En ligne, Libre).<br>
+Endpoint : POST /worker/register<br>
+Description : Enregistre un nouveau worker ou met à jour un worker existant en se basant sur son worker_identifier.<br><br>
 Données envoyées (JSON)
 
 ~~~~
