@@ -56,12 +56,13 @@ Données envoyées (JSON)
 }
 ~~~~
 <br>
-| Champ | Type | Obligatoire | Description |
-| :--- | :--- | :--- | :--- |
-| `worker_identifier` | string | **Oui** | Un identifiant unique et persistant pour cette instance de worker. |
-| `name` | string | **Oui** | Un nom lisible pour l'identifier dans l'interface. |
-| `ws_protocol` | string | Non | Protocole WebSocket (ws ou wss). Défaut: `ws`. |
-| `system_info` | object | Non | Informations diverses sur le système où tourne le worker. |
+
+| Champ               | Type     | Obligatoire | Description                                                               |
+| :------------------ | :------- | :---------- | :------------------------------------------------------------------------ |
+| `worker_identifier` | `string` | **Oui** | Un identifiant unique et persistant pour cette instance de worker.        |
+| `name`              | `string` | **Oui** | Un nom lisible pour l'identifier dans l'interface.                        |
+| `ws_protocol`       | `string` | Non         | Protocole WebSocket (`ws` ou `wss`). Défaut : `ws`.                       |
+| `system_info`       | `object` | Non         | Informations diverses sur le système où tourne le worker.                 |
 
 Réponse reçue (200/201 OK - JSON)
 
