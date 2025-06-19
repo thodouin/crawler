@@ -152,10 +152,10 @@ Si aucune tâche n'est trouvée :
 }
 ~~~
 
-4. Mise à Jour du Statut d'une Tâche
-Une fois la tâche terminée (succès ou échec), le worker doit notifier l'API du résultat. Cela libère le worker pour une nouvelle tâche et met à jour le statut du site.
-Endpoint : POST /worker/task-update
-Description : Met à jour le statut d'une tâche terminée.
+**4. Mise à Jour du Statut d'une Tâche**<br>
+Une fois la tâche terminée (succès ou échec), le worker doit notifier l'API du résultat. Cela libère le worker pour une nouvelle tâche et met à jour le statut du site.<br><br>
+Endpoint : POST /worker/task-update<br>
+Description : Met à jour le statut d'une tâche terminée.<br><br>
 Données envoyées (JSON)
 
 ~~~
@@ -172,14 +172,17 @@ Données envoyées (JSON)
 }
 ~~~
 
-Champ	Type	Obligatoire	Description
-worker_identifier	string	Oui	L'identifiant unique du worker.
-site_id_laravel	integer	Oui	L'ID du site qui a été traité (reçu via get-task).
-task_type	string	Oui	Le slug de la tâche qui a été exécutée (crawl ou check_existence).
-crawl_outcome	string	Si task_type est crawl	Résultat du crawl. Valeurs possibles: completed_successfully, failed_during_crawl, error_before_start.
-existence_result	string	Si task_type est check_existence	Résultat de la vérification. Valeurs possibles: exists, not_found, error.
-message	string	Non	Un message lisible résumant le résultat.
-details	object	Non	Un objet JSON pour des détails structurés (erreurs, stats, etc.).
+| Champ               | Type      | Obligatoire | Description                                                                                                                               |
+| :------------------ | :-------- | :---------- | :---------------------------------------------------------------------------------------------------------------------------------------- |
+| `worker_identifier` | `string`  | **Oui** | L'identifiant unique du worker.                                                                                                           |
+| `site_id_laravel`   | `integer` | **Oui** | L'ID du site qui a été traité (reçu via `get-task`).                                                                                      |
+| `task_type`         | `string`  | **Oui** | Le slug de la tâche qui a été exécutée (`crawl` ou `check_existence`).                                                                    |
+| `crawl_outcome`     | `string`  | Si `task_type` est `crawl` | Résultat du crawl. Valeurs possibles : `completed_successfully`, `failed_during_crawl`, `error_before_start`.                           |
+| `existence_result`  | `string`  | Si `task_type` est `check_existence` | Résultat de la vérification. Valeurs possibles : `exists`, `not_found`, `error`.                                                        |
+| `message`           | `string`  | Non         | Un message lisible résumant le résultat.                                                                                                  |
+| `details`           | `object`  | Non         | Un objet JSON pour des détails structurés (erreurs, statistiques, etc.).                                                                  |
+
+<br>
 Réponse reçue (200 OK - JSON)
 
 ~~~
