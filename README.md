@@ -42,7 +42,7 @@ Endpoint : POST /worker/register
 Description : Enregistre un nouveau worker ou met à jour un worker existant en se basant sur son worker_identifier.
 Données envoyées (JSON)
 
-~~~
+~~~~
 {
   "worker_identifier": "unique_id_for_this_worker_instance_123",
   "name": "Worker Electron sur Machine-Dev",
@@ -61,6 +61,7 @@ worker_identifier	string	Oui	Un identifiant unique et persistant pour cette inst
 name	string	Oui	Un nom lisible pour l'identifier dans l'interface.
 ws_protocol	string	Non	Protocole WebSocket (ws ou wss). Défaut: ws.
 system_info	object	Non	Informations diverses sur le système où tourne le worker.
+
 Réponse reçue (200/201 OK - JSON)
 
 ~~~
@@ -70,7 +71,8 @@ Réponse reçue (200/201 OK - JSON)
 }
 ~~~~
 
-2. Signal de Vie (Heartbeat)
+2. Signal de Vie (Heartbeat)<br>
+
 Le worker doit appeler cet endpoint périodiquement (ex: toutes les 30 secondes) pour signaler qu'il est toujours actif.
 Endpoint : POST /worker/heartbeat
 Description : Met à jour le champ last_heartbeat_at du worker. Si le worker était marqué OFFLINE, il est remis en ONLINE_IDLE.
@@ -95,7 +97,8 @@ Réponse reçue (200 OK - JSON)
 }
 ~~~
 
-3. Récupération d'une Tâche
+3. Récupération d'une Tâche<br>
+
 Quand le worker est libre (ONLINE_IDLE), il doit appeler cet endpoint pour demander du travail. L'API lui renverra la tâche la plus prioritaire qui lui est assignée.
 Endpoint : GET /v1/worker/get-task
 Description : Endpoint unique et dynamique pour récupérer n'importe quel type de tâche disponible.
