@@ -54,8 +54,8 @@ Données envoyées (JSON)
     "total_memory_gb": 16.0
   }
 }
-~~~
-
+~~~~
+<br>
 Champ	Type	Obligatoire	Description
 worker_identifier	string	Oui	Un identifiant unique et persistant pour cette instance de worker.
 name	string	Oui	Un nom lisible pour l'identifier dans l'interface.
@@ -64,12 +64,12 @@ system_info	object	Non	Informations diverses sur le système où tourne le worke
 
 Réponse reçue (200/201 OK - JSON)
 
-~~~
+~~~~
 {
   "message": "Worker enregistré",
   "laravel_worker_id": 12
 }
-~~~~
+~~~~~
 <br>
 2. Signal de Vie (Heartbeat)<br>
 
