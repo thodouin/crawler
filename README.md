@@ -73,7 +73,8 @@ Réponse reçue (200/201 OK - JSON)
   "laravel_worker_id": 12
 }
 ~~~~~
-<br>
+
+<br><br>
 2. Signal de Vie (Heartbeat)<br>
 
 Le worker doit appeler cet endpoint périodiquement (ex: toutes les 30 secondes) pour signaler qu'il est toujours actif.
