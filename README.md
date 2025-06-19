@@ -42,7 +42,7 @@ Endpoint : POST /worker/register
 Description : Enregistre un nouveau worker ou met à jour un worker existant en se basant sur son worker_identifier.
 Données envoyées (JSON)
 
-~~
+~~~
 {
   "worker_identifier": "unique_id_for_this_worker_instance_123",
   "name": "Worker Electron sur Machine-Dev",
@@ -75,7 +75,7 @@ Le worker doit appeler cet endpoint périodiquement (ex: toutes les 30 secondes)
 Endpoint : POST /worker/heartbeat
 Description : Met à jour le champ last_heartbeat_at du worker. Si le worker était marqué OFFLINE, il est remis en ONLINE_IDLE.
 
-~~
+~~~
 {
   "worker_identifier": "unique_id_for_this_worker_instance_123",
   "system_info": {
@@ -89,7 +89,7 @@ worker_identifier	string	Oui	L'identifiant unique du worker.
 system_info	object	Non	Permet de mettre à jour les informations système.
 Réponse reçue (200 OK - JSON)
 
-~~
+~~~
 {
   "message": "Heartbeat reçu"
 }
@@ -101,7 +101,7 @@ Endpoint : GET /v1/worker/get-task
 Description : Endpoint unique et dynamique pour récupérer n'importe quel type de tâche disponible.
 Données envoyées (JSON dans le corps de la requête GET)
 
-~~
+~~~
 {
   "worker_identifier": "unique_id_for_this_worker_instance_123"
 }
@@ -109,7 +109,8 @@ Données envoyées (JSON dans le corps de la requête GET)
 
 Réponse reçue (200 OK - JSON)
 Si une tâche est trouvée :
-~~Generated json~~
+
+~~~
 {
   "data": [
     {
@@ -130,7 +131,8 @@ priority	string	La priorité du site (urgent, normal, low).
 task_type	string	Le slug de la tâche à exécuter (crawl, check_existence, etc.). Le worker doit l'utiliser pour savoir quelle logique exécuter.
 <br>
 Si aucune tâche n'est trouvée :
-~~Generated json~~
+
+~~~
 {
   "data": []
 }
@@ -142,7 +144,7 @@ Endpoint : POST /worker/task-update
 Description : Met à jour le statut d'une tâche terminée.
 Données envoyées (JSON)
 
-~~
+~~~
 {
   "worker_identifier": "unique_id_for_this_worker_instance_123",
   "site_id_laravel": 42,
@@ -166,7 +168,7 @@ message	string	Non	Un message lisible résumant le résultat.
 details	object	Non	Un objet JSON pour des détails structurés (erreurs, stats, etc.).
 Réponse reçue (200 OK - JSON)
 
-~~
+~~~
 {
   "message": "Statut de la tâche mis à jour avec succès"
 }
