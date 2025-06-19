@@ -64,6 +64,7 @@ Données envoyées (JSON)
 | `ws_protocol`       | `string` | Non         | Protocole WebSocket (`ws` ou `wss`). Défaut : `ws`.                       |
 | `system_info`       | `object` | Non         | Informations diverses sur le système où tourne le worker.                 |
 
+<br><br>
 Réponse reçue (200/201 OK - JSON)
 
 ~~~~
