@@ -110,7 +110,7 @@ Réponse reçue (200 OK - JSON)
 
 Quand le worker est libre (ONLINE_IDLE), il doit appeler cet endpoint pour demander du travail. L'API lui renverra la tâche la plus prioritaire qui lui est assignée.<br><br>
 Endpoint : GET /v1/worker/get-task<br>
-Description : Endpoint unique et dynamique pour récupérer n'importe quel type de tâche disponible.<br>
+Description : Endpoint unique et dynamique pour récupérer n'importe quel type de tâche disponible.<br><br>
 Données envoyées (JSON dans le corps de la requête GET)
 
 ~~~
