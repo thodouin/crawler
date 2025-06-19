@@ -89,10 +89,14 @@ Description : Met à jour le champ last_heartbeat_at du worker. Si le worker ét
   }
 }
 ~~~
+<br>
 
-Champ	Type	Obligatoire	Description
-worker_identifier	string	Oui	L'identifiant unique du worker.
-system_info	object	Non	Permet de mettre à jour les informations système.
+| Champ               | Type     | Obligatoire | Description                            |
+| :------------------ | :------- | :---------- | :------------------------------------- |
+| `worker_identifier` | `string` | **Oui** |	L'identifiant unique du worker. |
+| `system_info`	| `object`	| Non	| Permet de mettre à jour les informations système. |
+
+<br>
 Réponse reçue (200 OK - JSON)
 
 ~~~
