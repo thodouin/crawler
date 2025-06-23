@@ -1,4 +1,4 @@
-<!--[if BLOCK]><![endif]--><?php if(count($tabs = $this->getCachedTabs())): ?>
+<?php if(count($tabs = $this->getCachedTabs())): ?>
     <?php
         $activeTab = strval($this->activeTab);
         $renderHookScopes = $this->getRenderHookScopes();
@@ -19,7 +19,7 @@
         <?php echo e(\Filament\Support\Facades\FilamentView::renderHook(\Filament\View\PanelsRenderHook::RESOURCE_PAGES_LIST_RECORDS_TABS_START, scopes: $renderHookScopes)); ?>
 
 
-        <!--[if BLOCK]><![endif]--><?php $__currentLoopData = $tabs; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $tabKey => $tab): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+        <?php $__currentLoopData = $tabs; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $tabKey => $tab): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
             <?php
                 $tabKey = strval($tabKey);
             ?>
@@ -46,7 +46,7 @@
 <?php $component = $__componentOriginal35d4caf141547fb7d125e4ebd3c1b66f; ?>
 <?php unset($__componentOriginal35d4caf141547fb7d125e4ebd3c1b66f); ?>
 <?php endif; ?>
-        <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?><!--[if ENDBLOCK]><![endif]-->
+        <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
 
         <?php echo e(\Filament\Support\Facades\FilamentView::renderHook(\Filament\View\PanelsRenderHook::RESOURCE_TABS_END, scopes: $renderHookScopes)); ?>
 
@@ -62,5 +62,5 @@
 <?php $component = $__componentOriginal447636fe67a19f9c79619fb5a3c0c28d; ?>
 <?php unset($__componentOriginal447636fe67a19f9c79619fb5a3c0c28d); ?>
 <?php endif; ?>
-<?php endif; ?><!--[if ENDBLOCK]><![endif]-->
+<?php endif; ?>
 <?php /**PATH /Users/admin/Sites/crawler_embedder_project/resources/views/vendor/filament-panels/components/resources/tabs.blade.php ENDPATH**/ ?>

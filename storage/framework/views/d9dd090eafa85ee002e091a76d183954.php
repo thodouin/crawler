@@ -8,10 +8,10 @@
 <?php $attributes = $attributes->except(\Illuminate\View\AnonymousComponent::ignoredParameterNames()); ?>
 <?php endif; ?>
 <?php $component->withAttributes(['class' => 'fi-dashboard-page']); ?>
-    <!--[if BLOCK]><![endif]--><?php if(method_exists($this, 'filtersForm')): ?>
+    <?php if(method_exists($this, 'filtersForm')): ?>
         <?php echo e($this->filtersForm); ?>
 
-    <?php endif; ?><!--[if ENDBLOCK]><![endif]-->
+    <?php endif; ?>
 
     <?php if (isset($component)) { $__componentOriginal7259e9ea993f43cfa75aaa166dfee38d = $component; } ?>
 <?php if (isset($attributes)) { $__attributesOriginal7259e9ea993f43cfa75aaa166dfee38d = $attributes; } ?>

@@ -75,12 +75,12 @@
         $hasCombinedRelationManagerTabsWithContent = $this->hasCombinedRelationManagerTabsWithContent();
     ?>
 
-    <!--[if BLOCK]><![endif]--><?php if((! $hasCombinedRelationManagerTabsWithContent) || (! count($relationManagers))): ?>
+    <?php if((! $hasCombinedRelationManagerTabsWithContent) || (! count($relationManagers))): ?>
         <?php echo e($form()); ?>
 
-    <?php endif; ?><!--[if ENDBLOCK]><![endif]-->
+    <?php endif; ?>
 
-    <!--[if BLOCK]><![endif]--><?php if(count($relationManagers)): ?>
+    <?php if(count($relationManagers)): ?>
         <?php if (isset($component)) { $__componentOriginal66235374c4c55de4d5fac61c84f69826 = $component; } ?>
 <?php if (isset($attributes)) { $__attributesOriginal66235374c4c55de4d5fac61c84f69826 = $attributes; } ?>
 <?php $component = Illuminate\View\AnonymousComponent::resolve(['view' => 'filament-panels::components.resources.relation-managers','data' => ['activeLocale' => isset($activeLocale) ? $activeLocale : null,'activeManager' => $this->activeRelationManager ?? ($hasCombinedRelationManagerTabsWithContent ? null : array_key_first($relationManagers)),'contentTabLabel' => $this->getContentTabLabel(),'contentTabIcon' => $this->getContentTabIcon(),'contentTabPosition' => $this->getContentTabPosition(),'managers' => $relationManagers,'ownerRecord' => $record,'pageClass' => static::class]] + (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag ? $attributes->all() : [])); ?>
@@ -91,12 +91,12 @@
 <?php $attributes = $attributes->except(\Illuminate\View\AnonymousComponent::ignoredParameterNames()); ?>
 <?php endif; ?>
 <?php $component->withAttributes(['active-locale' => \Illuminate\View\Compilers\BladeCompiler::sanitizeComponentAttribute(isset($activeLocale) ? $activeLocale : null),'active-manager' => \Illuminate\View\Compilers\BladeCompiler::sanitizeComponentAttribute($this->activeRelationManager ?? ($hasCombinedRelationManagerTabsWithContent ? null : array_key_first($relationManagers))),'content-tab-label' => \Illuminate\View\Compilers\BladeCompiler::sanitizeComponentAttribute($this->getContentTabLabel()),'content-tab-icon' => \Illuminate\View\Compilers\BladeCompiler::sanitizeComponentAttribute($this->getContentTabIcon()),'content-tab-position' => \Illuminate\View\Compilers\BladeCompiler::sanitizeComponentAttribute($this->getContentTabPosition()),'managers' => \Illuminate\View\Compilers\BladeCompiler::sanitizeComponentAttribute($relationManagers),'owner-record' => \Illuminate\View\Compilers\BladeCompiler::sanitizeComponentAttribute($record),'page-class' => \Illuminate\View\Compilers\BladeCompiler::sanitizeComponentAttribute(static::class)]); ?>
-            <!--[if BLOCK]><![endif]--><?php if($hasCombinedRelationManagerTabsWithContent): ?>
+            <?php if($hasCombinedRelationManagerTabsWithContent): ?>
                  <?php $__env->slot('content', null, []); ?> 
                     <?php echo e($form()); ?>
 
                  <?php $__env->endSlot(); ?>
-            <?php endif; ?><!--[if ENDBLOCK]><![endif]-->
+            <?php endif; ?>
          <?php echo $__env->renderComponent(); ?>
 <?php endif; ?>
 <?php if (isset($__attributesOriginal66235374c4c55de4d5fac61c84f69826)): ?>
@@ -107,7 +107,7 @@
 <?php $component = $__componentOriginal66235374c4c55de4d5fac61c84f69826; ?>
 <?php unset($__componentOriginal66235374c4c55de4d5fac61c84f69826); ?>
 <?php endif; ?>
-    <?php endif; ?><!--[if ENDBLOCK]><![endif]-->
+    <?php endif; ?>
 
     <?php if (isset($component)) { $__componentOriginal25c99e0c39003b7c1220853497533ee9 = $component; } ?>
 <?php if (isset($attributes)) { $__attributesOriginal25c99e0c39003b7c1220853497533ee9 = $attributes; } ?>

@@ -37,7 +37,7 @@ foreach ($attributes->all() as $__key => $__value) {
 unset($__defined_vars); ?>
 
 <header class="fi-simple-header flex flex-col items-center">
-    <!--[if BLOCK]><![endif]--><?php if($logo): ?>
+    <?php if($logo): ?>
         <?php if (isset($component)) { $__componentOriginalb501e8c73315a10eb0eb5fd14fda0d94 = $component; } ?>
 <?php if (isset($attributes)) { $__attributesOriginalb501e8c73315a10eb0eb5fd14fda0d94 = $attributes; } ?>
 <?php $component = Illuminate\View\AnonymousComponent::resolve(['view' => 'filament-panels::components.logo','data' => ['class' => 'mb-4']] + (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag ? $attributes->all() : [])); ?>
@@ -58,24 +58,24 @@ unset($__defined_vars); ?>
 <?php $component = $__componentOriginalb501e8c73315a10eb0eb5fd14fda0d94; ?>
 <?php unset($__componentOriginalb501e8c73315a10eb0eb5fd14fda0d94); ?>
 <?php endif; ?>
-    <?php endif; ?><!--[if ENDBLOCK]><![endif]-->
+    <?php endif; ?>
 
-    <!--[if BLOCK]><![endif]--><?php if(filled($heading)): ?>
+    <?php if(filled($heading)): ?>
         <h1
             class="fi-simple-header-heading text-center text-2xl font-bold tracking-tight text-gray-950 dark:text-white"
         >
             <?php echo e($heading); ?>
 
         </h1>
-    <?php endif; ?><!--[if ENDBLOCK]><![endif]-->
+    <?php endif; ?>
 
-    <!--[if BLOCK]><![endif]--><?php if(filled($subheading)): ?>
+    <?php if(filled($subheading)): ?>
         <p
             class="fi-simple-header-subheading mt-2 text-center text-sm text-gray-500 dark:text-gray-400"
         >
             <?php echo e($subheading); ?>
 
         </p>
-    <?php endif; ?><!--[if ENDBLOCK]><![endif]-->
+    <?php endif; ?>
 </header>
 <?php /**PATH /Users/admin/Sites/crawler_embedder_project/resources/views/vendor/filament-panels/components/header/simple.blade.php ENDPATH**/ ?>

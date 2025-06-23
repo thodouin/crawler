@@ -43,7 +43,7 @@ unset($__defined_vars); ?>
 
 >
     <div>
-        <!--[if BLOCK]><![endif]--><?php if($breadcrumbs): ?>
+        <?php if($breadcrumbs): ?>
             <?php if (isset($component)) { $__componentOriginale1cebc129855f156aa8f78d22103aca1 = $component; } ?>
 <?php if (isset($attributes)) { $__attributesOriginale1cebc129855f156aa8f78d22103aca1 = $attributes; } ?>
 <?php $component = Illuminate\View\AnonymousComponent::resolve(['view' => 'filament::components.breadcrumbs','data' => ['breadcrumbs' => $breadcrumbs,'class' => 'mb-2 hidden sm:block']] + (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag ? $attributes->all() : [])); ?>
@@ -64,7 +64,7 @@ unset($__defined_vars); ?>
 <?php $component = $__componentOriginale1cebc129855f156aa8f78d22103aca1; ?>
 <?php unset($__componentOriginale1cebc129855f156aa8f78d22103aca1); ?>
 <?php endif; ?>
-        <?php endif; ?><!--[if ENDBLOCK]><![endif]-->
+        <?php endif; ?>
 
         <h1
             class="fi-header-heading text-2xl font-bold tracking-tight text-gray-950 dark:text-white sm:text-3xl"
@@ -73,14 +73,14 @@ unset($__defined_vars); ?>
 
         </h1>
 
-        <!--[if BLOCK]><![endif]--><?php if($subheading): ?>
+        <?php if($subheading): ?>
             <p
                 class="fi-header-subheading mt-2 max-w-2xl text-lg text-gray-600 dark:text-gray-400"
             >
                 <?php echo e($subheading); ?>
 
             </p>
-        <?php endif; ?><!--[if ENDBLOCK]><![endif]-->
+        <?php endif; ?>
     </div>
 
     <div
@@ -92,7 +92,7 @@ unset($__defined_vars); ?>
         <?php echo e(\Filament\Support\Facades\FilamentView::renderHook(\Filament\View\PanelsRenderHook::PAGE_HEADER_ACTIONS_BEFORE, scopes: $this->getRenderHookScopes())); ?>
 
 
-        <!--[if BLOCK]><![endif]--><?php if($actions): ?>
+        <?php if($actions): ?>
             <?php if (isset($component)) { $__componentOriginal59d80b1aec4ae4c914a3e52dede19504 = $component; } ?>
 <?php if (isset($attributes)) { $__attributesOriginal59d80b1aec4ae4c914a3e52dede19504 = $attributes; } ?>
 <?php $component = Illuminate\View\AnonymousComponent::resolve(['view' => 'filament::components.actions','data' => ['actions' => $actions]] + (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag ? $attributes->all() : [])); ?>
@@ -113,7 +113,7 @@ unset($__defined_vars); ?>
 <?php $component = $__componentOriginal59d80b1aec4ae4c914a3e52dede19504; ?>
 <?php unset($__componentOriginal59d80b1aec4ae4c914a3e52dede19504); ?>
 <?php endif; ?>
-        <?php endif; ?><!--[if ENDBLOCK]><![endif]-->
+        <?php endif; ?>
 
         <?php echo e(\Filament\Support\Facades\FilamentView::renderHook(\Filament\View\PanelsRenderHook::PAGE_HEADER_ACTIONS_AFTER, scopes: $this->getRenderHookScopes())); ?>
 

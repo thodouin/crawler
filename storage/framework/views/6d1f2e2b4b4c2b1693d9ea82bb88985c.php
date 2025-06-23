@@ -36,7 +36,7 @@ foreach ($attributes->all() as $__key => $__value) {
 
 unset($__defined_vars); ?>
 
-<!--[if BLOCK]><![endif]--><?php if(count($actions)): ?>
+<?php if(count($actions)): ?>
     <div
         <?php if($this->areFormActionsSticky()): ?>
             x-data="{
@@ -78,5 +78,5 @@ unset($__defined_vars); ?>
 <?php unset($__componentOriginal59d80b1aec4ae4c914a3e52dede19504); ?>
 <?php endif; ?>
     </div>
-<?php endif; ?><!--[if ENDBLOCK]><![endif]-->
+<?php endif; ?>
 <?php /**PATH /Users/admin/Sites/crawler_embedder_project/resources/views/vendor/filament-panels/components/form/actions.blade.php ENDPATH**/ ?>

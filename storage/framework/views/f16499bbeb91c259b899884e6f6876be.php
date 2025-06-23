@@ -8,7 +8,7 @@
 <?php $attributes = $attributes->except(\Illuminate\View\AnonymousComponent::ignoredParameterNames()); ?>
 <?php endif; ?>
 <?php $component->withAttributes([]); ?>
-    <!--[if BLOCK]><![endif]--><?php if(filament()->hasRegistration()): ?>
+    <?php if(filament()->hasRegistration()): ?>
          <?php $__env->slot('subheading', null, []); ?> 
             <?php echo e(__('filament-panels::pages/auth/login.actions.register.before')); ?>
 
@@ -16,7 +16,7 @@
             <?php echo e($this->registerAction); ?>
 
          <?php $__env->endSlot(); ?>
-    <?php endif; ?><!--[if ENDBLOCK]><![endif]-->
+    <?php endif; ?>
 
     <?php echo e(\Filament\Support\Facades\FilamentView::renderHook(\Filament\View\PanelsRenderHook::AUTH_LOGIN_FORM_BEFORE, scopes: $this->getRenderHookScopes())); ?>
 
