@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api\V1;
 use App\Http\Controllers\Controller;
 use App\Models\Site;
 use App\Models\CrawlerWorker; // Important
+use App\Models\TaskType;
 use App\Enums\SiteStatus;
 use App\Enums\SitePriority;
 use App\Enums\WorkerStatus; // Pour la mise à jour du statut
@@ -36,69 +37,95 @@ class WorkerApiController extends Controller
      * C'est ici que toute la magie opère.
      */
     private function getTaskForWorker(Request $request, string $taskType)
-    {
-        $validator = Validator::make($request->all(), [
-            'worker_identifier' => 'required|string|exists:crawler_workers,worker_identifier',
-        ]);
+{
+    $validator = Validator::make($request->all(), [
+        'worker_identifier' => 'required|string|exists:crawler_workers,worker_identifier',
+    ]);
 
-        if ($validator->fails()) {
-            return response()->json(['errors' => $validator->errors()], 422);
-        }
+    if ($validator->fails()) { return response()->json(['errors' => $validator->errors()], 422); }
 
-        $worker = CrawlerWorker::where('worker_identifier', $request->worker_identifier)->first();
+    $worker = CrawlerWorker::where('worker_identifier', $request->worker_identifier)->first();
 
-        // On s'assure que le worker est bien LIBRE
-        if ($worker->status !== WorkerStatus::ONLINE_IDLE) {
-             Log::info("Worker [{$worker->worker_identifier}] a demandé une tâche de type '{$taskType}' mais est déjà {$worker->status->value}.");
-             return response()->json(['data' => []]);
-        }
+    if ($worker->status !== WorkerStatus::ONLINE_IDLE || !is_null($worker->current_site_id_processing)) {
+         Log::info("Worker [{$worker->worker_identifier}] demande une tâche '{$taskType}' mais est déjà occupé.");
+         return response()->json(['data' => []]);
+    }
 
-        // On cherche un site assigné à ce worker, prêt, ET DU BON TYPE !
+    $siteToProcess = null;
+
+    \DB::transaction(function () use ($worker, $taskType, &$siteToProcess) {
+        
+        $priorityOrder = "CASE WHEN priority = ? THEN 1 WHEN priority = ? THEN 2 ELSE 3 END";
+        
+        // Priorité 1 : Tâches déjà assignées (pour le lot initial)
         $siteToProcess = Site::query()
             ->where('crawler_worker_id', $worker->id)
             ->where('status_api', SiteStatus::PENDING_SUBMISSION)
-            ->where('task_type', $taskType) // <-- FILTRE CLÉ !
-            ->orderByRaw("CASE WHEN priority = ? THEN 1 WHEN priority = ? THEN 2 WHEN priority = ? THEN 3 ELSE 4 END", ['urgent', 'normal', 'low'])
+            ->where('task_type', $taskType)
+            ->orderByRaw($priorityOrder, [SitePriority::URGENT->value, SitePriority::NORMAL->value])
             ->orderBy('updated_at', 'asc')
+            ->lockForUpdate()
             ->first();
 
+        // === LA PARTIE LA PLUS IMPORTANTE ===
+        // Priorité 2 : Si pas de tâche assignée, s'auto-assigner une tâche de la file d'attente
         if (!$siteToProcess) {
-            return response()->json(['data' => []]);
+            $siteToProcess = Site::query()
+                ->where('status_api', SiteStatus::PENDING_ASSIGNMENT) // On cherche dans la file d'attente générale
+                ->where('task_type', $taskType)
+                ->whereNull('crawler_worker_id') // Qui n'a pas encore de worker
+                ->orderByRaw($priorityOrder, [SitePriority::URGENT->value, SitePriority::NORMAL->value])
+                ->orderBy('created_at', 'asc')
+                ->lockForUpdate()
+                ->first();
+            
+            if ($siteToProcess) {
+                // Le worker se l'approprie !
+                $siteToProcess->crawler_worker_id = $worker->id;
+                Log::info("Worker [{$worker->worker_identifier}] s'est auto-assigné le Site ID {$siteToProcess->id} qui était en attente.");
+            }
         }
 
-        // Mettre à jour le statut du site
-        $siteToProcess->status_api = SiteStatus::SUBMITTED_TO_API;
-        $siteToProcess->last_sent_to_api_at = now();
-        $siteToProcess->fastapi_job_id = 'task_' . uniqid(); 
-        $siteToProcess->last_api_response = "Tâche ({$taskType}) récupérée par le worker {$worker->name}.";
-        $siteToProcess->save();
+        if ($siteToProcess) {
+            // Logique commune pour marquer le site et le worker comme occupés
+            $siteToProcess->status_api = SiteStatus::SUBMITTED_TO_API;
+            $siteToProcess->save();
 
-        if (class_exists(SiteStatusUpdated::class)) {
-            SiteStatusUpdated::dispatch($siteToProcess->fresh());
+            $worker->status = WorkerStatus::ONLINE_BUSY;
+            $worker->current_site_id_processing = $siteToProcess->id;
+            $worker->save();
+            
+            if (class_exists(SiteStatusUpdated::class)) SiteStatusUpdated::dispatch($siteToProcess->fresh());
+            if (class_exists(CrawlerWorkerStatusChanged::class)) CrawlerWorkerStatusChanged::dispatch($worker->fresh());
         }
+    });
 
-        // Mettre à jour et lier le worker
-        $worker->status = WorkerStatus::ONLINE_BUSY;
-        $worker->current_site_id_processing = $siteToProcess->id;
-        $worker->save();
-        
-        if (class_exists(CrawlerWorkerStatusChanged::class)) {
-            CrawlerWorkerStatusChanged::dispatch($worker->fresh());
-        }
-        
-        $taskData = [
-            'id' => $siteToProcess->id,
-            'url' => $siteToProcess->url,
-            'priority' => $siteToProcess->priority->value,
-            'fastapi_job_id' => $siteToProcess->fastapi_job_id,
-            'task_type' => $siteToProcess->task_type, // On le renvoie quand même, c'est une bonne pratique
-        ];
-
-        return response()->json(['data' => [$taskData]]);
+    if (!$siteToProcess) {
+        return response()->json(['data' => []]);
     }
 
-    /**
-     * VOUS POUVEZ MAINTENANT SUPPRIMER L'ANCIENNE MÉTHODE getTasks()
-     * public function getTasks(Request $request) { ... }
-     */
+    // Préparer et renvoyer la tâche...
+    $taskData = [
+        'id' => $siteToProcess->id,
+        'url' => $siteToProcess->url,
+        'priority' => $siteToProcess->priority->value,
+        'task_type' => $siteToProcess->task_type,
+    ];
+    return response()->json(['data' => [$taskData]]);
 }
+
+    /**
+     * Récupère la définition des champs de formulaire pour un type de tâche donné.
+     */
+    public function getTaskTypeFields(string $slug)
+    {
+        $taskType = TaskType::where('slug', $slug)->where('is_active', true)->first();
+
+        if (!$taskType) {
+            return response()->json(['message' => 'Type de tâche non trouvé ou inactif.'], 404);
+        }
+
+        return response()->json($taskType->required_fields ?? []);
+    }
+}
+

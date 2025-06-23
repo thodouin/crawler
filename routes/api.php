@@ -28,3 +28,5 @@ Route::post('/sites', [SiteController::class, 'store'])->name('api.sites.store')
 Route::get('/task-types', function() {
     return TaskType::where('is_active', true)->pluck('name', 'slug');
 })->name('api.task-types.list');
+
+Route::get('/task-types/{slug}/fields', [WorkerApiController::class, 'getTaskTypeFields']);

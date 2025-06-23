@@ -12,6 +12,7 @@ use App\Events\CrawlerWorkerStatusChanged;// Renommer en WorkerStatusChanged ou 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Http;
 
 class WorkerController extends Controller 
 {
@@ -75,7 +76,8 @@ class WorkerController extends Controller
     }
 
     // Appelé par FastAPI quand un crawl est terminé ou a échoué
-    public function taskUpdate(Request $request) {
+    public function taskUpdate(Request $request)
+    {
         $validator = Validator::make($request->all(), [
             'worker_identifier' => 'required|string|exists:crawler_workers,worker_identifier',
             'site_id_laravel' => 'required|integer|exists:sites,id',
@@ -85,41 +87,39 @@ class WorkerController extends Controller
             'message' => 'nullable|string',
             'details' => 'nullable|array',
         ]);
-
+    
         if ($validator->fails()) {
             return response()->json(['errors' => $validator->errors()], 422);
         }
-
+    
         $validated = $validator->validated();
         $site = Site::find($validated['site_id_laravel']);
         $worker = CrawlerWorker::where('worker_identifier', $validated['worker_identifier'])->first();
-
+    
         if (!$site || !$worker) {
             Log::error("Callback TaskUpdate: Site ou Worker non trouvé.", $request->all());
             return response()->json(['message' => 'Site ou Worker non trouvé'], 404);
         }
-
+    
         Log::info("Callback TaskUpdate reçu pour Site ID {$site->id} par Worker {$worker->worker_identifier}. Tâche: {$validated['task_type']}");
-
+    
         // --- Logique de mise à jour en fonction du type de tâche ---
         if ($validated['task_type'] === 'check_existence') {
             
             // 1. On enregistre le résultat de la vérification
             $site->existence_status = $validated['existence_result'];
             $site->last_existence_check_at = now();
-
-            // 2. MODIFICATION : On remet le statut en attente d'une *nouvelle* assignation
-            $site->status_api = SiteStatus::PENDING_ASSIGNMENT;
-
-            // 3. MODIFICATION : On met à jour le message pour plus de clarté
-            $site->last_api_response = "Vérification d'existence terminée (" . $validated['existence_result'] . "). Prêt pour une nouvelle tâche (ex: crawl).";
-
-            // 4. TRÈS IMPORTANT : On désassigne le worker du site !
-            // Le site est maintenant de retour dans le pool commun, il n'appartient plus à ce worker.
-            $site->crawler_worker_id = null;
-
+    
+            // 2. === LA CORRECTION CRUCIALE ===
+            // On réinitialise le statut API à NULL. Le site est maintenant "libre"
+            // pour recevoir n'importe quelle nouvelle tâche à l'avenir.
+            $site->status_api = null; 
+            
+            $site->last_api_response = "Vérification d'existence terminée : " . $validated['existence_result'];
+            $site->crawler_worker_id = null; // On le désassigne, c'est plus propre.
+    
         } elseif ($validated['task_type'] === 'crawl') {
-            // Cette logique reste inchangée : une tâche de crawl est finale.
+            // Cette logique reste la même, car un crawl est une action "finale"
             if ($validated['crawl_outcome'] === 'completed_successfully') {
                 $site->status_api = SiteStatus::COMPLETED_BY_API;
             } else {
@@ -127,14 +127,31 @@ class WorkerController extends Controller
             }
             $site->last_api_response = "Crawl Callback: {$validated['crawl_outcome']} - " . ($validated['message'] ?? json_encode($validated['details']));
         }
-
+    
         $site->save();
         if (class_exists(SiteStatusUpdated::class)) {
             SiteStatusUpdated::dispatch($site->fresh());
         }
 
-        // --- Libérer le worker (logique commune) ---
-        // Cette partie du code n'a pas besoin de changer. Elle libère le worker de sa tâche *actuelle*.
+        // --- NOTIFICATION AU MUSÉE (NOUVELLE PARTIE) ---
+        if ($validated['task_type'] === 'check_existence') {
+            $callbackUrl = config('services.musee.callback_url'); // On lira cette config
+
+            if ($callbackUrl) {
+                try {
+                    Http::post($callbackUrl, [
+                        'url' => $site->url,
+                        'task_type' => 'check_existence',
+                        'existence_result' => $validated['existence_result'],
+                    ]);
+                    Log::info("Callback envoyé avec succès au Musée pour le site ID {$site->id}");
+                } catch (\Exception $e) {
+                    Log::error("Échec de l'envoi du callback au Musée pour le site ID {$site->id}: " . $e->getMessage());
+                }
+            }
+        }
+    
+        // --- Libérer le worker ---
         if ($worker->current_site_id_processing == $site->id) {
             $worker->current_site_id_processing = null;
             $worker->status = WorkerStatus::ONLINE_IDLE;
@@ -144,9 +161,9 @@ class WorkerController extends Controller
                 CrawlerWorkerStatusChanged::dispatch($worker->fresh());
             }
         } else {
-            Log::warning("Worker [{$worker->worker_identifier}] a terminé Site ID {$site->id}, mais il était marqué comme traitant un autre site ou déjà libre.");
+            Log::warning("Worker [{$worker->worker_identifier}] a terminé Site ID {$site->id}, mais il était marqué comme traitant un autre site ou était déjà libre.");
         }
-
-        return response()->json(['message' => 'Statut de la tâche mis à jour avec succès']);
+    
+        return response()->json(['message' => 'Statut de la tâche mis à jour et callback envoyé.']);
     }
 }

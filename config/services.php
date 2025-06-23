@@ -40,4 +40,7 @@ return [
         'key' => env('FASTAPI_CRAWLER_KEY'), // Utilisé pour l'authentification si votre API FastAPI le requiert
     ],
 
+    'musee' => [
+        'callback_url' => env('MUSEE_CALLBACK_URL'),
+    ],
 ];
