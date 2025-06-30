@@ -14,9 +14,11 @@ class TaskType extends Model
         'slug',
         'description',
         'is_active',
+        'required_fields',
     ];
 
     protected $casts = [
         'is_active' => 'boolean',
+        'required_fields' => 'array',
     ];
 }

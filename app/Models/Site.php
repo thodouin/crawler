@@ -15,7 +15,7 @@ class Site extends Model
     protected $fillable = [
         'url', 'crawler_worker_id', 'status_api', 'priority', 'task_type',
         'fastapi_job_id', 'last_sent_to_api_at', 'last_api_response',
-        'existence_status', 'last_existence_check_at',
+        'existence_status', 'last_existence_check_at', 'max_depth',
     ];
     protected $casts = [
         'status_api' => SiteStatus::class,

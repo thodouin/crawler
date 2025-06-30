@@ -78,17 +78,42 @@ class WorkerController extends Controller
     // Appelé par FastAPI quand un crawl est terminé ou a échoué
     public function taskUpdate(Request $request)
     {
-        $validator = Validator::make($request->all(), [
+        // 1. Mise à jour de la validation pour accepter les nouveaux détails
+        $baseRules = [
             'worker_identifier' => 'required|string|exists:crawler_workers,worker_identifier',
             'site_id_laravel' => 'required|integer|exists:sites,id',
-            'task_type' => 'required|string|in:crawl,check_existence',
-            'crawl_outcome' => 'required_if:task_type,crawl|string|in:completed_successfully,failed_during_crawl,error_before_start',
-            'existence_result' => 'required_if:task_type,check_existence|string|in:exists,not_found,error',
+            'task_type' => 'required|string|in:crawl,check_existence,sitemap_crawl',
             'message' => 'nullable|string',
-            'details' => 'nullable|array',
-        ]);
+            'details' => 'nullable|array', // On accepte toujours le tableau 'details'
+        ];
+
+        // 2. On ajoute des règles spécifiques en fonction du type de tâche
+        $specificRules = [];
+        $taskType = $request->input('task_type');
+
+        if ($taskType === 'check_existence') {
+            $specificRules = [
+                'existence_result' => 'required|string|in:exists,not_found,error',
+                'details.technology' => 'nullable|string',
+                'details.analytics_tools' => 'nullable|string',
+                'details.language' => 'nullable|string',
+            ];
+        } elseif ($taskType === 'sitemap_crawl') {
+            $specificRules = [
+                'sitemap_results' => 'required|array',
+            ];
+        } elseif ($taskType === 'crawl') {
+            $specificRules = [
+                'crawl_outcome' => 'required|string',
+                'details.pages_crawled' => 'required|integer',
+                'details.depth_requested' => 'required|integer',
+            ];
+        }
+
+        $validator = Validator::make($request->all(), array_merge($baseRules, $specificRules));
     
         if ($validator->fails()) {
+            Log::error("TaskUpdate Validation Failed", $validator->errors()->toArray());
             return response()->json(['errors' => $validator->errors()], 422);
         }
     
@@ -96,59 +121,71 @@ class WorkerController extends Controller
         $site = Site::find($validated['site_id_laravel']);
         $worker = CrawlerWorker::where('worker_identifier', $validated['worker_identifier'])->first();
     
-        if (!$site || !$worker) {
-            Log::error("Callback TaskUpdate: Site ou Worker non trouvé.", $request->all());
-            return response()->json(['message' => 'Site ou Worker non trouvé'], 404);
-        }
+        if (!$site || !$worker) { /* ... */ }
     
         Log::info("Callback TaskUpdate reçu pour Site ID {$site->id} par Worker {$worker->worker_identifier}. Tâche: {$validated['task_type']}");
     
-        // --- Logique de mise à jour en fonction du type de tâche ---
+        // 2. Initialisation du payload pour le callback
+        $callbackPayload = null;
+
+        // 3. Logique de mise à jour et préparation du callback
         if ($validated['task_type'] === 'check_existence') {
-            
-            // 1. On enregistre le résultat de la vérification
+            Log::info('[DEBUG] Entrée dans le bloc "check_existence".');
             $site->existence_status = $validated['existence_result'];
             $site->last_existence_check_at = now();
-    
-            // 2. === LA CORRECTION CRUCIALE ===
-            // On réinitialise le statut API à NULL. Le site est maintenant "libre"
-            // pour recevoir n'importe quelle nouvelle tâche à l'avenir.
-            $site->status_api = null; 
+            $site->status_api = null;
+            $site->crawler_worker_id = null;
+            $site->last_api_response = "Existence check: " . $validated['existence_result'];
             
-            $site->last_api_response = "Vérification d'existence terminée : " . $validated['existence_result'];
-            $site->crawler_worker_id = null; // On le désassigne, c'est plus propre.
-    
+            $callbackPayload = [
+                'url' => $site->url,
+                'task_type' => 'check_existence',
+                'existence_result' => $validated['existence_result'],
+                'details' => $validated['details'] ?? null,
+            ];
+            Log::info('[DEBUG] Payload pour "check_existence" préparé.', $callbackPayload);
+
+        } elseif ($validated['task_type'] === 'sitemap_crawl') {
+            $pageCount = count($validated['sitemap_results'] ?? []);
+            $site->status_api = SiteStatus::COMPLETED_BY_API;
+            $site->last_api_response = "Sitemap crawl: {$pageCount} pages.";
+            $site->crawler_worker_id = null;
+            
+            $callbackPayload = [
+                'url' => $site->url,
+                'task_type' => 'sitemap_crawl',
+                'sitemap_page_count' => $pageCount,
+            ];
+
         } elseif ($validated['task_type'] === 'crawl') {
-            // Cette logique reste la même, car un crawl est une action "finale"
-            if ($validated['crawl_outcome'] === 'completed_successfully') {
+            $site->crawler_worker_id = null; // On libère toujours le site
+            
+            if (($validated['crawl_outcome'] ?? '') === 'completed_successfully') {
                 $site->status_api = SiteStatus::COMPLETED_BY_API;
+                $site->last_api_response = $validated['message'] ?? 'Crawl terminé avec succès.';
+                
+                $callbackPayload = [
+                    'url' => $site->url,
+                    'task_type' => 'crawl',
+                    'crawl_page_count' => $validated['details']['pages_crawled'] ?? 0,
+                    'crawl_max_depth_used' => $validated['details']['depth_requested'] ?? $site->max_depth,
+                ];
             } else {
                 $site->status_api = SiteStatus::FAILED_PROCESSING_BY_API;
+                $site->last_api_response = $validated['message'] ?? 'Le crawl a échoué.';
+                // On peut aussi envoyer un callback en cas d'échec si on le souhaite
             }
-            $site->last_api_response = "Crawl Callback: {$validated['crawl_outcome']} - " . ($validated['message'] ?? json_encode($validated['details']));
         }
     
         $site->save();
-        if (class_exists(SiteStatusUpdated::class)) {
-            SiteStatusUpdated::dispatch($site->fresh());
-        }
+        if (class_exists(SiteStatusUpdated::class)) { SiteStatusUpdated::dispatch($site->fresh()); }
 
-        // --- NOTIFICATION AU MUSÉE (NOUVELLE PARTIE) ---
-        if ($validated['task_type'] === 'check_existence') {
-            $callbackUrl = config('services.musee.callback_url'); // On lira cette config
-
-            if ($callbackUrl) {
-                try {
-                    Http::post($callbackUrl, [
-                        'url' => $site->url,
-                        'task_type' => 'check_existence',
-                        'existence_result' => $validated['existence_result'],
-                    ]);
-                    Log::info("Callback envoyé avec succès au Musée pour le site ID {$site->id}");
-                } catch (\Exception $e) {
-                    Log::error("Échec de l'envoi du callback au Musée pour le site ID {$site->id}: " . $e->getMessage());
-                }
-            }
+        // 4. Envoi du callback unifié
+        if ($callbackPayload) {
+            Log::info("[DEBUG] Un payload de callback existe. Tentative d'envoi.");
+            $this->sendGenericCallback($callbackPayload);
+        } else {
+            Log::info("[DEBUG] Aucun payload de callback à envoyer pour la tâche {$validated['task_type']}."); // Log 5
         }
     
         // --- Libérer le worker ---
@@ -165,5 +202,23 @@ class WorkerController extends Controller
         }
     
         return response()->json(['message' => 'Statut de la tâche mis à jour et callback envoyé.']);
+    }
+
+    private function sendGenericCallback(array $payload): void
+    {
+        $callbackUrl = config('services.client_app.callback_url'); // Utilise une clé générique
+        if (!$callbackUrl) {
+            Log::error("URL de callback générique non configurée (services.client_app.callback_url).");
+            return;
+        }
+
+        Log::info("[WORKER->MUSÉE] Préparation de l'envoi du payload de callback : ", $payload);
+
+        try {
+            Http::post($callbackUrl, $payload);
+            Log::info("Callback générique envoyé avec succès pour l'URL {$payload['url']}");
+        } catch (\Exception $e) {
+            Log::error("Échec de l'envoi du callback générique pour l'URL {$payload['url']}: " . $e->getMessage());
+        }
     }
 }

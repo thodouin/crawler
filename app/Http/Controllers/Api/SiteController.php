@@ -23,7 +23,8 @@ class SiteController extends Controller
         // 1. On valide que 'urls_json' est une chaîne JSON valide
         $validator = Validator::make($request->all(), [
             'urls_json' => 'required|json',
-            'task_type' => 'required|string',
+            'task_type' => 'required|string|in:crawl,check_existence,sitemap_crawl',
+            'max_depth' => 'nullable|integer',
         ]);
     
         if ($validator->fails()) {
@@ -32,6 +33,7 @@ class SiteController extends Controller
         
         $validatedData = $validator->validated();
         $taskType = $validatedData['task_type'];
+        $maxDepth = $validatedData['max_depth'] ?? null;
         
         // 2. On décode la chaîne JSON pour retrouver notre tableau d'URLs
         $urlsFromPayload = json_decode($validatedData['urls_json'], true);
@@ -81,6 +83,7 @@ class SiteController extends Controller
                 }
                 $site->priority = SitePriority::NORMAL;
                 $site->task_type = $taskType;
+                $site->max_depth = ($taskType === 'crawl') ? $maxDepth : null;
                 $site->save();
                 if (class_exists(SiteStatusUpdated::class)) SiteStatusUpdated::dispatch($site->fresh());
             } else {
