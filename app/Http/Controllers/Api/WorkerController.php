@@ -82,7 +82,7 @@ class WorkerController extends Controller
         $baseRules = [
             'worker_identifier' => 'required|string|exists:crawler_workers,worker_identifier',
             'site_id_laravel' => 'required|integer|exists:sites,id',
-            'task_type' => 'required|string|in:crawl,check_existence,sitemap_crawl',
+            'task_type' => 'required|string|in:crawl,check_existence,ask_questions',
             'message' => 'nullable|string',
             'details' => 'nullable|array', // On accepte toujours le tableau 'details'
         ];
@@ -98,9 +98,9 @@ class WorkerController extends Controller
                 'details.analytics_tools' => 'nullable|string',
                 'details.language' => 'nullable|string',
             ];
-        } elseif ($taskType === 'sitemap_crawl') {
+        } elseif ($taskType === 'ask_questions') {
             $specificRules = [
-                'sitemap_results' => 'required|array',
+                'qna_results' => 'required_if:task_type,ask_questions|array',
             ];
         } elseif ($taskType === 'crawl') {
             $specificRules = [
@@ -145,16 +145,16 @@ class WorkerController extends Controller
             ];
             Log::info('[DEBUG] Payload pour "check_existence" préparé.', $callbackPayload);
 
-        } elseif ($validated['task_type'] === 'sitemap_crawl') {
-            $pageCount = count($validated['sitemap_results'] ?? []);
-            $site->status_api = SiteStatus::COMPLETED_BY_API;
-            $site->last_api_response = "Sitemap crawl: {$pageCount} pages.";
+        } elseif ($validated['task_type'] === 'ask_questions') {
+            $site->status_api = null;
             $site->crawler_worker_id = null;
+            $site->last_api_response = "Q&A terminé avec succès.";
             
+            // On prépare le payload pour le Musée, en transmettant les résultats BRUTS
             $callbackPayload = [
                 'url' => $site->url,
-                'task_type' => 'sitemap_crawl',
-                'sitemap_page_count' => $pageCount,
+                'task_type' => 'ask_questions',
+                'qna_results' => $validated['qna_results'] ?? [],
             ];
 
         } elseif ($validated['task_type'] === 'crawl') {

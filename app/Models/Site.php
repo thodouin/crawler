@@ -16,11 +16,13 @@ class Site extends Model
         'url', 'crawler_worker_id', 'status_api', 'priority', 'task_type',
         'fastapi_job_id', 'last_sent_to_api_at', 'last_api_response',
         'existence_status', 'last_existence_check_at', 'max_depth',
+        'qna_results',
     ];
     protected $casts = [
         'status_api' => SiteStatus::class,
         'priority' => SitePriority::class,
         'last_sent_to_api_at' => 'datetime',
+        'qna_results' => 'array'
     ];
     // Relation vers le CrawlerWorker assigné
     public function crawlerWorker(): BelongsTo 

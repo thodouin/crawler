@@ -18,8 +18,6 @@ Route::prefix('v1')->group(function () {
     
     // Endpoint pour obtenir une tâche de vérification d'existence
     Route::post('/worker/get-existence-check-task', [WorkerApiController::class, 'getExistenceCheckTask']);
-    Route::post('/v1/worker/get-sitemap-task', [WorkerApiController::class, 'getSitemapTask']);
-    // Endpoint pour obtenir une tâche de crawl complet
     Route::post('/worker/get-crawl-task', [WorkerApiController::class, 'getCrawlTask']);
 });
 
@@ -30,3 +28,6 @@ Route::get('/task-types', function() {
 })->name('api.task-types.list');
 
 Route::get('/task-types/{slug}/fields', [WorkerApiController::class, 'getTaskTypeFields']);
+
+Route::get('/sites/{site}/qna-results', [SiteController::class, 'downloadQnaResults'])
+->name('api.sites.qna-results');

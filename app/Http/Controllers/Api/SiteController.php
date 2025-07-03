@@ -115,4 +115,18 @@ class SiteController extends Controller
             'assigned_worker' => $site->crawlerWorker,
         ]);
     }
+
+    public function downloadQnaResults(Site $site)
+    {
+        if (empty($site->qna_results)) {
+            return response()->json(['message' => 'Aucun résultat Q&R disponible pour ce site.'], 404);
+        }
+
+        $fileName = 'qna_results_' . Str::slug($site->url) . '.json';
+        $jsonData = json_encode($site->qna_results, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
+
+        return response($jsonData)
+            ->header('Content-Type', 'application/json')
+            ->header('Content-Disposition', 'attachment; filename="' . $fileName . '"');
+    }
 }
